@@ -1,0 +1,39 @@
+package com.example.studentmangerment.dto.request;
+
+import com.example.studentmangerment.validation.AsciiOnly;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Date;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class StudentRequest {
+    @NotBlank(message = "Name is required")
+    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+    private String name;
+
+    @NotBlank(message = "Code is required")
+    @AsciiOnly(message = "Code can only contain English letters, numbers, and basic symbols")
+    @Pattern(regexp = "^[A-Za-z0-9]+$", message = "Code must contain only letters and numbers")
+    private String code;
+
+    @NotBlank(message = "Address is required")
+    @Size(min = 5, max = 200, message = "Address must be between 5 and 200 characters")
+    private String address;
+
+    @NotNull(message = "Average score is required")
+    @DecimalMin(value = "0.0", message = "Average score must be at least 0.0")
+    @DecimalMax(value = "10.0", message = "Average score must be at most 10.0")
+    private Double averageScore;
+
+    @NotNull(message = "Birthday is required")
+    @JsonFormat(pattern = "yyyy/MM/dd", timezone = "UTC")
+    private Date birthday;
+}

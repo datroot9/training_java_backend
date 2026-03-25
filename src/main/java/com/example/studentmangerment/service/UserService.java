@@ -57,10 +57,10 @@ public class UserService {
                 .build();
         userStorage.put(user.getUsername(), user);
 
+//        response for register request have no jwt
         return AuthResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
-                .token(null) // Will be replaced with JWT token in the future
                 .build();
     }
 
