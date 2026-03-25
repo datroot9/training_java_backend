@@ -1,8 +1,9 @@
 package com.example.studentmangerment.controller;
 
-import com.example.studentmangerment.dto.LoginRequest;
-import com.example.studentmangerment.dto.RegisterRequest;
-import com.example.studentmangerment.entity.User;
+import com.example.studentmangerment.dto.request.LoginRequest;
+import com.example.studentmangerment.dto.request.RegisterRequest;
+import com.example.studentmangerment.dto.response.ApiResponse;
+import com.example.studentmangerment.dto.response.AuthResponse;
 import com.example.studentmangerment.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +20,14 @@ class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(userService.register(request));
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse authResponse = userService.register(request);
+        return ResponseEntity.ok(ApiResponse.success("User registered successfully", authResponse));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(userService.login(request));
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse authResponse = userService.login(request);
+        return ResponseEntity.ok(ApiResponse.success("Login successful", authResponse));
     }
 }

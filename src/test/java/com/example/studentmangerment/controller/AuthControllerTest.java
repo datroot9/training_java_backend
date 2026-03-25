@@ -1,7 +1,7 @@
 package com.example.studentmangerment.controller;
 
-import com.example.studentmangerment.dto.LoginRequest;
-import com.example.studentmangerment.dto.RegisterRequest;
+import com.example.studentmangerment.dto.request.LoginRequest;
+import com.example.studentmangerment.dto.request.RegisterRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
