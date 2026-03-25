@@ -5,6 +5,7 @@ import com.example.studentmangerment.dto.request.StudentRequest;
 import com.example.studentmangerment.dto.response.PageResponse;
 import com.example.studentmangerment.dto.response.StudentResponse;
 import com.example.studentmangerment.entity.Student;
+import com.example.studentmangerment.entity.StudentInfo;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @Service
 public class StudentService {
     private final Map<Integer, Student> studentStorage = new HashMap<>();
+    private final Map<Integer, StudentInfo> studentInfoStorage = new HashMap<>();
     private final AtomicInteger idGenerator = new AtomicInteger(1);
 
     @PostConstruct
@@ -24,35 +26,56 @@ public class StudentService {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
         try {
             // Add sample students
+            int id1 = idGenerator.getAndIncrement();
             Student student1 = Student.builder()
-                    .id(idGenerator.getAndIncrement())
+                    .id(id1)
                     .name("John Smith")
                     .code("ST001")
+                    .build();
+            studentStorage.put(student1.getId(), student1);
+
+            StudentInfo info1 = StudentInfo.builder()
+                    .id(id1)
+                    .studentId(id1)
                     .address("123 Main Street, New York")
                     .averageScore(8.5)
                     .birthday(dateFormat.parse("2003/05/15"))
                     .build();
-            studentStorage.put(student1.getId(), student1);
+            studentInfoStorage.put(id1, info1);
 
+            int id2 = idGenerator.getAndIncrement();
             Student student2 = Student.builder()
-                    .id(idGenerator.getAndIncrement())
+                    .id(id2)
                     .name("Jane Doe")
                     .code("ST002")
+                    .build();
+            studentStorage.put(student2.getId(), student2);
+
+            StudentInfo info2 = StudentInfo.builder()
+                    .id(id2)
+                    .studentId(id2)
                     .address("456 Oak Avenue, Los Angeles")
                     .averageScore(9.2)
                     .birthday(dateFormat.parse("2002/08/22"))
                     .build();
-            studentStorage.put(student2.getId(), student2);
+            studentInfoStorage.put(id2, info2);
 
+            int id3 = idGenerator.getAndIncrement();
             Student student3 = Student.builder()
-                    .id(idGenerator.getAndIncrement())
+                    .id(id3)
                     .name("Bob Wilson")
                     .code("ST003")
+                    .build();
+            studentStorage.put(student3.getId(), student3);
+
+            StudentInfo info3 = StudentInfo.builder()
+                    .id(id3)
+                    .studentId(id3)
                     .address("789 Pine Road, Chicago")
                     .averageScore(7.8)
                     .birthday(dateFormat.parse("2003/11/10"))
                     .build();
-            studentStorage.put(student3.getId(), student3);
+            studentInfoStorage.put(id3, info3);
         } catch (ParseException e) {
             throw new RuntimeException("Error initializing sample data", e);
         }
@@ -63,8 +86,11 @@ public class StudentService {
         List<StudentResponse> filteredStudents = studentStorage.values().stream()
                 .filter(student -> code == null || student.getCode().toLowerCase().contains(code.toLowerCase()))
                 .filter(student -> name == null || student.getName().toLowerCase().contains(name.toLowerCase()))
-                .filter(student -> birthday == null || isSameDay(student.getBirthday(), birthday))
-                .map(this::toResponse)
+                .map(student -> {
+                    StudentInfo info = studentInfoStorage.get(student.getId());
+                    return toResponse(student, info);
+                })
+                .filter(response -> birthday == null || (response.getBirthday() != null && isSameDay(response.getBirthday(), birthday)))
                 .collect(Collectors.toList());
 
         // Apply sorting
@@ -140,7 +166,8 @@ public class StudentService {
         if (student == null) {
             throw new RuntimeException("Student not found with id: " + id);
         }
-        return toResponse(student);
+        StudentInfo studentInfo = studentInfoStorage.get(id);
+        return toResponse(student, studentInfo);
     }
 
     public StudentResponse createStudent(StudentRequest request) {
@@ -151,22 +178,36 @@ public class StudentService {
             throw new RuntimeException("Student code already exists");
         }
 
+        int newId = idGenerator.getAndIncrement();
+
         Student student = Student.builder()
-                .id(idGenerator.getAndIncrement())
+                .id(newId)
                 .name(request.getName())
                 .code(request.getCode())
+                .build();
+        studentStorage.put(student.getId(), student);
+
+        StudentInfo studentInfo = StudentInfo.builder()
+                .id(newId)
+                .studentId(newId)
                 .address(request.getAddress())
                 .averageScore(request.getAverageScore())
                 .birthday(request.getBirthday())
                 .build();
-        studentStorage.put(student.getId(), student);
-        return toResponse(student);
+        studentInfoStorage.put(newId, studentInfo);
+
+        return toResponse(student, studentInfo);
     }
 
     public StudentResponse updateStudent(int id, StudentRequest request) {
         Student student = studentStorage.get(id);
         if (student == null) {
             throw new RuntimeException("Student not found with id: " + id);
+        }
+
+        StudentInfo studentInfo = studentInfoStorage.get(id);
+        if (studentInfo == null) {
+            throw new RuntimeException("Student info not found with id: " + id);
         }
 
         // Check if code is being changed and already exists
@@ -180,12 +221,13 @@ public class StudentService {
 
         student.setName(request.getName());
         student.setCode(request.getCode());
-        student.setAddress(request.getAddress());
-        student.setAverageScore(request.getAverageScore());
-        student.setBirthday(request.getBirthday());
+        studentInfo.setAddress(request.getAddress());
+        studentInfo.setAverageScore(request.getAverageScore());
+        studentInfo.setBirthday(request.getBirthday());
 
         studentStorage.put(id, student);
-        return toResponse(student);
+        studentInfoStorage.put(id, studentInfo);
+        return toResponse(student, studentInfo);
     }
 
     public void deleteStudent(int id) {
@@ -193,16 +235,17 @@ public class StudentService {
         if (student == null) {
             throw new RuntimeException("Student not found with id: " + id);
         }
+        studentInfoStorage.remove(id);
     }
 
-    private StudentResponse toResponse(Student student) {
+    private StudentResponse toResponse(Student student, StudentInfo studentInfo) {
         return StudentResponse.builder()
                 .id(student.getId())
                 .name(student.getName())
                 .code(student.getCode())
-                .address(student.getAddress())
-                .averageScore(student.getAverageScore())
-                .birthday(student.getBirthday())
+                .address(studentInfo != null ? studentInfo.getAddress() : null)
+                .averageScore(studentInfo != null ? studentInfo.getAverageScore() : 0.0)
+                .birthday(studentInfo != null ? studentInfo.getBirthday() : null)
                 .build();
     }
 }

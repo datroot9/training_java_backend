@@ -3,4 +3,11 @@ spring:
     import:
       - optional:file:.env[.properties]
   application:
-    name: studentMangerment
+    name: studentManagement
+  datasource:
+    url: jdbc:mysql://localhost:3306/student_management?useSSL=false
+    username: root
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+doma:
+  dialect: mysql
