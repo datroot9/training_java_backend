@@ -1,6 +1,6 @@
 package com.example.studentmangerment.dto.request;
 
-import com.example.studentmangerment.validation.AsciiOnly;
+import com.example.studentmangerment.validation.StudentCode;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -20,8 +20,7 @@ public class StudentRequest {
     private String name;
 
     @NotBlank(message = "Code is required")
-    @AsciiOnly(message = "Code can only contain English letters, numbers, and basic symbols")
-    @Pattern(regexp = "^[A-Za-z0-9]+$", message = "Code must contain only letters and numbers")
+    @StudentCode
     private String code;
 
     @NotBlank(message = "Address is required")

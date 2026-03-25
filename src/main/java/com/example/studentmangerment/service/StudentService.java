@@ -30,7 +30,7 @@ public class StudentService {
             Student student1 = Student.builder()
                     .id(id1)
                     .name("John Smith")
-                    .code("ST001")
+                    .code("STU001")
                     .build();
             studentStorage.put(student1.getId(), student1);
 
@@ -47,7 +47,7 @@ public class StudentService {
             Student student2 = Student.builder()
                     .id(id2)
                     .name("Jane Doe")
-                    .code("ST002")
+                    .code("STU002")
                     .build();
             studentStorage.put(student2.getId(), student2);
 
@@ -64,7 +64,7 @@ public class StudentService {
             Student student3 = Student.builder()
                     .id(id3)
                     .name("Bob Wilson")
-                    .code("ST003")
+                    .code("STU003")
                     .build();
             studentStorage.put(student3.getId(), student3);
 
