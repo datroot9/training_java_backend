@@ -168,11 +168,11 @@ public class StudentService {
     }
 
     public StudentResponse getStudentById(int id) {
-        Student student = studentStorage.get(id);
+        Student student = studentDao.findById(id).orElse(null);
         if (student == null) {
             throw new RuntimeException("Student not found with id: " + id);
         }
-        StudentInfo studentInfo = studentInfoStorage.get(id);
+        StudentInfo studentInfo = studentInfoDao.findByStudentId(id).orElse(null);
         return toResponse(student, studentInfo);
     }
 
@@ -239,12 +239,13 @@ public class StudentService {
         return toResponse(updatedStudent, updatedStudentInfo);
     }
 
-    public void deleteStudent(int id) {
-        Student student = studentStorage.remove(id);
+    public Result<Student> deleteStudent(int id) {
+        Student student = studentDao.findById(id).orElse(null);
         if (student == null) {
             throw new RuntimeException("Student not found with id: " + id);
         }
-        studentInfoStorage.remove(id);
+        Result<Student> studentResult = studentDao.delete(student);
+        return studentResult;
     }
 
     private StudentResponse toResponse(Student student, StudentInfo studentInfo) {

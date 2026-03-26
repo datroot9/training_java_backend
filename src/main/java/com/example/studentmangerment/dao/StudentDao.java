@@ -1,10 +1,7 @@
 package com.example.studentmangerment.dao;
 
 import com.example.studentmangerment.entity.Student;
-import org.seasar.doma.Dao;
-import org.seasar.doma.Insert;
-import org.seasar.doma.Select;
-import org.seasar.doma.Update;
+import org.seasar.doma.*;
 import org.seasar.doma.jdbc.Result;
 import org.seasar.doma.boot.ConfigAutowireable;
 
@@ -25,4 +22,7 @@ public interface StudentDao {
 
     @Update
     Result<Student> update(Student student);
+
+    @Delete
+    Result<Student> delete(Student student);
 }
