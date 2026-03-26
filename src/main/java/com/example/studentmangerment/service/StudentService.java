@@ -1,5 +1,7 @@
 package com.example.studentmangerment.service;
 
+import com.example.studentmangerment.dao.StudentDao;
+import com.example.studentmangerment.dao.StudentInfoDao;
 import com.example.studentmangerment.dto.request.PageRequest;
 import com.example.studentmangerment.dto.request.StudentRequest;
 import com.example.studentmangerment.dto.response.PageResponse;
@@ -7,6 +9,8 @@ import com.example.studentmangerment.dto.response.StudentResponse;
 import com.example.studentmangerment.entity.Student;
 import com.example.studentmangerment.entity.StudentInfo;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.seasar.doma.jdbc.Result;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -16,11 +20,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class StudentService {
     private final Map<Integer, Student> studentStorage = new HashMap<>();
     private final Map<Integer, StudentInfo> studentInfoStorage = new HashMap<>();
     private final AtomicInteger idGenerator = new AtomicInteger(1);
-
+    private final StudentDao studentDao;
+    private final StudentInfoDao studentInfoDao;
     @PostConstruct
     public void init() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
@@ -172,31 +178,29 @@ public class StudentService {
 
     public StudentResponse createStudent(StudentRequest request) {
         // Check if code already exists
-        boolean codeExists = studentStorage.values().stream()
-                .anyMatch(s -> s.getCode().equals(request.getCode()));
-        if (codeExists) {
+        if(studentDao.findByCode(request.getCode()).isPresent()){
             throw new RuntimeException("Student code already exists");
         }
 
-        int newId = idGenerator.getAndIncrement();
-
         Student student = Student.builder()
-                .id(newId)
                 .name(request.getName())
                 .code(request.getCode())
                 .build();
-        studentStorage.put(student.getId(), student);
+
+        Result<Student> result =studentDao.insert(student);
+
+        Student insertedStudent = result.getEntity();
 
         StudentInfo studentInfo = StudentInfo.builder()
-                .id(newId)
-                .studentId(newId)
+                .studentId(insertedStudent.getId())
                 .address(request.getAddress())
                 .averageScore(request.getAverageScore())
                 .birthday(request.getBirthday())
                 .build();
-        studentInfoStorage.put(newId, studentInfo);
 
-        return toResponse(student, studentInfo);
+        Result<StudentInfo> resultInfo = studentInfoDao.insert(studentInfo);
+        StudentInfo insertedStudentInfo = resultInfo.getEntity();
+        return toResponse(insertedStudent, insertedStudentInfo);
     }
 
     public StudentResponse updateStudent(int id, StudentRequest request) {
