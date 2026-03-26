@@ -216,14 +216,11 @@ public class StudentService {
             throw new RuntimeException("Student info not found with id: " + id);
         }
 
-//        // Check if code is being changed and already exists
-//        if (!student.getCode().equals(request.getCode())) {
-//            boolean codeExists = studentStorage.values().stream()
-//                    .anyMatch(s -> s.getCode().equals(request.getCode()));
-//            if (codeExists) {
-//                throw new RuntimeException("Student code already exists");
-//            }
-//        }
+        // Check if code is being changed and already exists
+        String newCode = request.getCode();
+        if (newCode != null && !newCode.equals(student.getCode()) && studentDao.findByCode(newCode).isPresent()) {
+            throw new RuntimeException("Student code already exists");
+        }
         Student updatedStudent = Student.builder()
                         .id(student.getId())
                         .name(request.getName())
