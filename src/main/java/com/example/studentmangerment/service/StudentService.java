@@ -88,38 +88,30 @@ public class StudentService {
     }
 
     public PageResponse<StudentResponse> getAllStudents(String code, String name, Date birthday, PageRequest pageRequest) {
-        // Filter students based on search criteria
-        List<StudentResponse> filteredStudents = studentStorage.values().stream()
-                .filter(student -> code == null || student.getCode().toLowerCase().contains(code.toLowerCase()))
-                .filter(student -> name == null || student.getName().toLowerCase().contains(name.toLowerCase()))
+        // Calculate offset for pagination
+        int page = pageRequest.getPage();
+        int size = pageRequest.getSize();
+        int offset = (page - 1) * size;
+
+        // Get total count
+        long totalElements = studentDao.countAll(code, name);
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        // Get paginated students from database
+        List<Student> students = studentDao.findAllWithPaging(code, name, birthday, size, offset);
+
+        // Map to response and fetch student info
+        List<StudentResponse> studentResponses = students.stream()
                 .map(student -> {
-                    StudentInfo info = studentInfoStorage.get(student.getId());
+                    StudentInfo info = studentInfoDao.findByStudentId(student.getId()).orElse(null);
                     return toResponse(student, info);
                 })
                 .filter(response -> birthday == null || (response.getBirthday() != null && isSameDay(response.getBirthday(), birthday)))
                 .collect(Collectors.toList());
 
-        // Apply sorting
-        if (pageRequest.getSortBy() != null && !pageRequest.getSortBy().isEmpty()) {
-            filteredStudents = sortStudents(filteredStudents, pageRequest.getSortBy(), pageRequest.getSortDirection());
-        }
-
-        // Calculate pagination
-        long totalElements = filteredStudents.size();
-        int page = pageRequest.getPage();
-        int size = pageRequest.getSize();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-
-        // Get paginated data
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, filteredStudents.size());
-        List<StudentResponse> paginatedData = fromIndex < filteredStudents.size()
-                ? filteredStudents.subList(fromIndex, toIndex)
-                : new ArrayList<>();
-
         // Build response
         return PageResponse.<StudentResponse>builder()
-                .data(paginatedData)
+                .data(studentResponses)
                 .currentPage(page)
                 .pageSize(size)
                 .totalElements(totalElements)
@@ -204,13 +196,11 @@ public class StudentService {
     }
 
     public StudentResponse updateStudent(int id, StudentRequest request) {
-//        Student student = studentStorage.get(id);
         Student student = studentDao.findById(id).orElse(null);
         if (student == null) {
             throw new RuntimeException("Student not found with id: " + id);
         }
 
-//
         StudentInfo studentInfo = studentInfoDao.findByStudentId(student.getId()).orElse(null);
         if (studentInfo == null) {
             throw new RuntimeException("Student info not found with id: " + id);

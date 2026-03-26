@@ -5,6 +5,8 @@ import org.seasar.doma.*;
 import org.seasar.doma.jdbc.Result;
 import org.seasar.doma.boot.ConfigAutowireable;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Dao
@@ -25,4 +27,10 @@ public interface StudentDao {
 
     @Delete
     Result<Student> delete(Student student);
+
+    @Select
+    List<Student> findAllWithPaging(String code, String name, Date birthday , Integer limit, Integer offset);
+
+    @Select
+    Long countAll(String code, String name);
 }
