@@ -6,6 +6,7 @@ import com.example.studentmangerment.dto.request.RegisterRequest;
 import com.example.studentmangerment.dto.response.AuthResponse;
 import com.example.studentmangerment.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService {
     private final UserDao userDao;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
 
     public AuthResponse register(RegisterRequest request) {
@@ -22,6 +24,9 @@ public class UserService {
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Passwords do not match");
         }
+//        //hash password
+//        request.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
+
         User user = User.builder()
                 .username(request.getUsername())
                 .password(request.getPassword())
