@@ -8,15 +8,12 @@ import com.example.studentmangerment.dto.response.PageResponse;
 import com.example.studentmangerment.dto.response.StudentResponse;
 import com.example.studentmangerment.entity.Student;
 import com.example.studentmangerment.entity.StudentInfo;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.seasar.doma.jdbc.Result;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -67,7 +64,7 @@ public class StudentService {
     }
 
     private List<StudentResponse> sortStudents(List<StudentResponse> students, String sortBy, String sortDirection) {
-        Comparator<StudentResponse> comparator = null;
+        Comparator<StudentResponse> comparator ;
 
         switch (sortBy.toLowerCase()) {
             case "id":
