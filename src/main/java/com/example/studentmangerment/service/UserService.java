@@ -25,7 +25,7 @@ public class UserService {
             throw new RuntimeException("Passwords do not match");
         }
 //        //hash password
-//        request.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
+        request.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
 
         User user = User.builder()
                 .username(request.getUsername())
@@ -42,7 +42,7 @@ public class UserService {
     public AuthResponse login(LoginRequest request) {
         User user = userDao.findByUsername(request.getUsername())
                 .orElse(null);
-        if (user != null && user.getPassword().equals(request.getPassword())) {
+        if (user != null && bCryptPasswordEncoder.matches(request.getPassword(), user.getPassword())) {
             return AuthResponse.builder()
                     .id(user.getId())
                     .username(user.getUsername())
