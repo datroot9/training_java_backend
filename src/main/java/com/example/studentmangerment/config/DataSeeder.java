@@ -24,10 +24,10 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        User user = userDao.findByUsername("admin").orElseGet(
+        User user = userDao.findByUsername("admin@gmail.com").orElseGet(
                 () -> {
                     User newUser = User.builder()
-                            .username("admin")
+                            .username("admin@gmail.com")
                             .password("password123")
                             .build();
                     userDao.insert(newUser);
