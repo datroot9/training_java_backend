@@ -204,34 +204,42 @@ public class StudentService {
     }
 
     public StudentResponse updateStudent(int id, StudentRequest request) {
-        Student student = studentStorage.get(id);
+//        Student student = studentStorage.get(id);
+        Student student = studentDao.findById(id).orElse(null);
         if (student == null) {
             throw new RuntimeException("Student not found with id: " + id);
         }
 
-        StudentInfo studentInfo = studentInfoStorage.get(id);
+//
+        StudentInfo studentInfo = studentInfoDao.findByStudentId(student.getId()).orElse(null);
         if (studentInfo == null) {
             throw new RuntimeException("Student info not found with id: " + id);
         }
 
-        // Check if code is being changed and already exists
-        if (!student.getCode().equals(request.getCode())) {
-            boolean codeExists = studentStorage.values().stream()
-                    .anyMatch(s -> s.getCode().equals(request.getCode()));
-            if (codeExists) {
-                throw new RuntimeException("Student code already exists");
-            }
-        }
+//        // Check if code is being changed and already exists
+//        if (!student.getCode().equals(request.getCode())) {
+//            boolean codeExists = studentStorage.values().stream()
+//                    .anyMatch(s -> s.getCode().equals(request.getCode()));
+//            if (codeExists) {
+//                throw new RuntimeException("Student code already exists");
+//            }
+//        }
+        Student updatedStudent = Student.builder()
+                        .id(student.getId())
+                        .name(request.getName())
+                        .code(request.getCode())
+                        .build();
 
-        student.setName(request.getName());
-        student.setCode(request.getCode());
-        studentInfo.setAddress(request.getAddress());
-        studentInfo.setAverageScore(request.getAverageScore());
-        studentInfo.setBirthday(request.getBirthday());
-
-        studentStorage.put(id, student);
-        studentInfoStorage.put(id, studentInfo);
-        return toResponse(student, studentInfo);
+        StudentInfo updatedStudentInfo = StudentInfo.builder()
+                        .id(studentInfo.getId())
+                        .studentId(student.getId())
+                        .address(request.getAddress())
+                        .averageScore(request.getAverageScore())
+                        .birthday(request.getBirthday())
+                        .build();
+        studentDao.update(updatedStudent);
+        studentInfoDao.update(updatedStudentInfo);
+        return toResponse(updatedStudent, updatedStudentInfo);
     }
 
     public void deleteStudent(int id) {
