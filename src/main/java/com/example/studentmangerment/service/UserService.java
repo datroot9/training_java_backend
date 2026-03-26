@@ -8,35 +8,28 @@ import com.example.studentmangerment.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final Map<String, User> userStorage = new HashMap<>();
     private final UserDao userDao;
-    private final AtomicLong idGenerator = new AtomicLong(1);
 
 
     public AuthResponse register(RegisterRequest request) {
-        if (userStorage.containsKey(request.getUsername())) {
+        if (userDao.findByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists");
         }
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Passwords do not match");
         }
         User user = User.builder()
-                .id((int) idGenerator.getAndIncrement())
                 .username(request.getUsername())
                 .password(request.getPassword())
                 .build();
-        userStorage.put(user.getUsername(), user);
+        userDao.insert(user);
 
 //        response for register request have no jwt
         return AuthResponse.builder()
-                .id(user.getId())
                 .username(user.getUsername())
                 .build();
     }
