@@ -17,12 +17,12 @@ public class StudentInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "info_id")
-    private int id;
+    private Integer id;
     @Column(name = "student_id")
     private int studentId;
     private String address;
     @Column(name = "average_score")
     private double averageScore;
-    @Column(name = "day_of_birth")
+    @Column(name = "date_of_birth")
     private Date birthday;
 }

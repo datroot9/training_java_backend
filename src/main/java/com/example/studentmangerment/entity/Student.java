@@ -8,7 +8,7 @@ import org.seasar.doma.*;
 
 
 @Entity(immutable = true)
-@Table(name = "students")
+@Table(name = "student")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,8 +16,11 @@ import org.seasar.doma.*;
 public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @Column(name = "student_id")
+    private Integer id;
+    @Column(name = "student_name")
     private String name;
+    @Column(name = "student_code")
     private String code;
 
 }
