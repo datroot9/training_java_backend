@@ -22,71 +22,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class StudentService {
-    private final Map<Integer, Student> studentStorage = new HashMap<>();
-    private final Map<Integer, StudentInfo> studentInfoStorage = new HashMap<>();
-    private final AtomicInteger idGenerator = new AtomicInteger(1);
     private final StudentDao studentDao;
     private final StudentInfoDao studentInfoDao;
-    @PostConstruct
-    public void init() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-        try {
-            // Add sample students
-            int id1 = idGenerator.getAndIncrement();
-            Student student1 = Student.builder()
-                    .id(id1)
-                    .name("John Smith")
-                    .code("STU001")
-                    .build();
-            studentStorage.put(student1.getId(), student1);
-
-            StudentInfo info1 = StudentInfo.builder()
-                    .id(id1)
-                    .studentId(id1)
-                    .address("123 Main Street, New York")
-                    .averageScore(8.5)
-                    .birthday(dateFormat.parse("2003/05/15"))
-                    .build();
-            studentInfoStorage.put(id1, info1);
-
-            int id2 = idGenerator.getAndIncrement();
-            Student student2 = Student.builder()
-                    .id(id2)
-                    .name("Jane Doe")
-                    .code("STU002")
-                    .build();
-            studentStorage.put(student2.getId(), student2);
-
-            StudentInfo info2 = StudentInfo.builder()
-                    .id(id2)
-                    .studentId(id2)
-                    .address("456 Oak Avenue, Los Angeles")
-                    .averageScore(9.2)
-                    .birthday(dateFormat.parse("2002/08/22"))
-                    .build();
-            studentInfoStorage.put(id2, info2);
-
-            int id3 = idGenerator.getAndIncrement();
-            Student student3 = Student.builder()
-                    .id(id3)
-                    .name("Bob Wilson")
-                    .code("STU003")
-                    .build();
-            studentStorage.put(student3.getId(), student3);
-
-            StudentInfo info3 = StudentInfo.builder()
-                    .id(id3)
-                    .studentId(id3)
-                    .address("789 Pine Road, Chicago")
-                    .averageScore(7.8)
-                    .birthday(dateFormat.parse("2003/11/10"))
-                    .build();
-            studentInfoStorage.put(id3, info3);
-        } catch (ParseException e) {
-            throw new RuntimeException("Error initializing sample data", e);
-        }
-    }
-
     public PageResponse<StudentResponse> getAllStudents(String code, String name, Date birthday, PageRequest pageRequest) {
         // Calculate offset for pagination
         int page = pageRequest.getPage();
@@ -108,6 +45,9 @@ public class StudentService {
                 })
                 .filter(response -> birthday == null || (response.getBirthday() != null && isSameDay(response.getBirthday(), birthday)))
                 .collect(Collectors.toList());
+
+        // Sort students based on provided parameters
+        studentResponses = sortStudents(studentResponses, pageRequest.getSortBy(), pageRequest.getSortDirection());
 
         // Build response
         return PageResponse.<StudentResponse>builder()
