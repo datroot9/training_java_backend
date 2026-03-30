@@ -93,12 +93,11 @@ public class StudentService {
     }
 
     public StudentResponse getStudentById(int id) {
-        Student student = studentDao.findById(id).orElse(null);
+        StudentWithInfo student = studentDao.findStudentWithInfoById(id).orElse(null);
         if (student == null) {
             throw new RuntimeException("Student not found with id: " + id);
         }
-        StudentInfo studentInfo = studentInfoDao.findByStudentId(id).orElse(null);
-        return toResponse(student, studentInfo);
+        return toResponse(student);
     }
 
     public StudentResponse createStudent(StudentRequest request) {

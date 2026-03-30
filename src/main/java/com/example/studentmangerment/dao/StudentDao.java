@@ -19,6 +19,8 @@ public interface StudentDao {
     @Select
     Optional<Student> findById(Integer id);
 
+    @Select
+    Optional<StudentWithInfo> findStudentWithInfoById(Integer id);
 
     @Select
     Optional<Student> findByCode(String code);

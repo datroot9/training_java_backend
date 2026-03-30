@@ -1,6 +1,7 @@
 package com.example.studentmangerment.dao;
 
 import com.example.studentmangerment.entity.StudentInfo;
+
 import org.seasar.doma.Dao;
 import org.seasar.doma.Insert;
 import org.seasar.doma.Select;
