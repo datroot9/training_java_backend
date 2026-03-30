@@ -12,12 +12,14 @@ import com.example.studentmangerment.entity.StudentWithInfo;
 import lombok.RequiredArgsConstructor;
 import org.seasar.doma.jdbc.Result;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class StudentService {
     private final StudentDao studentDao;
     private final StudentInfoDao studentInfoDao;
