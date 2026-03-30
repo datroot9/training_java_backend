@@ -68,4 +68,10 @@ public class StudentController {
         studentService.deleteStudent(id);
         return ResponseEntity.ok(ApiResponse.success("Student deleted successfully", null));
     }
+
+    @GetMapping("/export")
+    public ResponseEntity<ApiResponse<Void>> exportStudents() {
+        studentService.exportStudents();
+        return ResponseEntity.ok(ApiResponse.success("Students exported successfully", null));
+    }
 }

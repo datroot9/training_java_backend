@@ -11,19 +11,25 @@ import com.example.studentmangerment.entity.StudentInfo;
 import com.example.studentmangerment.entity.StudentWithInfo;
 import lombok.RequiredArgsConstructor;
 import org.seasar.doma.jdbc.Result;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class StudentService {
     private final StudentDao studentDao;
     private final StudentInfoDao studentInfoDao;
-    public PageResponse<StudentResponse> getAllStudents(String code, String name, Date birthday, PageRequest pageRequest) {
+    private final JobLauncher jobLauncher;
+    private final Job exportStudentsJob;
+
+    public PageResponse<StudentResponse> getAllStudents(String code, String name, Date birthday,
+            PageRequest pageRequest) {
         // Calculate offset for pagination
         int page = pageRequest.getPage();
         int size = pageRequest.getSize();
@@ -56,13 +62,12 @@ public class StudentService {
                 .build();
     }
 
-
     private List<StudentResponse> sortStudents(List<StudentResponse> students, String sortBy, String sortDirection) {
         if (sortBy == null || sortBy.trim().isEmpty()) {
             return students;
         }
 
-        Comparator<StudentResponse> comparator ;
+        Comparator<StudentResponse> comparator;
 
         switch (sortBy.toLowerCase()) {
             case "id":
@@ -104,7 +109,7 @@ public class StudentService {
 
     public StudentResponse createStudent(StudentRequest request) {
         // Check if code already exists
-        if(studentDao.findByCode(request.getCode()).isPresent()){
+        if (studentDao.findByCode(request.getCode()).isPresent()) {
             throw new RuntimeException("Student code already exists");
         }
 
@@ -113,7 +118,7 @@ public class StudentService {
                 .code(request.getCode())
                 .build();
 
-        Result<Student> result =studentDao.insert(student);
+        Result<Student> result = studentDao.insert(student);
 
         Student insertedStudent = result.getEntity();
 
@@ -146,18 +151,18 @@ public class StudentService {
             throw new RuntimeException("Student code already exists");
         }
         Student updatedStudent = Student.builder()
-                        .id(student.getId())
-                        .name(request.getName())
-                        .code(request.getCode())
-                        .build();
+                .id(student.getId())
+                .name(request.getName())
+                .code(request.getCode())
+                .build();
 
         StudentInfo updatedStudentInfo = StudentInfo.builder()
-                        .id(studentInfo.getId())
-                        .studentId(student.getId())
-                        .address(request.getAddress())
-                        .averageScore(request.getAverageScore())
-                        .birthday(request.getBirthday())
-                        .build();
+                .id(studentInfo.getId())
+                .studentId(student.getId())
+                .address(request.getAddress())
+                .averageScore(request.getAverageScore())
+                .birthday(request.getBirthday())
+                .build();
         studentDao.update(updatedStudent);
         studentInfoDao.update(updatedStudentInfo);
         return toResponse(updatedStudent, updatedStudentInfo);
@@ -192,5 +197,16 @@ public class StudentService {
                 .averageScore(studentInfo != null ? studentInfo.getAverageScore() : 0.0)
                 .birthday(studentInfo != null ? studentInfo.getBirthday() : null)
                 .build();
+    }
+
+    public void exportStudents() {
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("timestamp", System.currentTimeMillis())
+                .toJobParameters();
+        try {
+            jobLauncher.run(exportStudentsJob, jobParameters);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
