@@ -64,6 +64,10 @@ public class StudentService {
     }
 
     private List<StudentResponse> sortStudents(List<StudentResponse> students, String sortBy, String sortDirection) {
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            return students;
+        }
+
         Comparator<StudentResponse> comparator ;
 
         switch (sortBy.toLowerCase()) {
