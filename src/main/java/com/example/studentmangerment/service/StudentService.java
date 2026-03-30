@@ -8,11 +8,11 @@ import com.example.studentmangerment.dto.response.PageResponse;
 import com.example.studentmangerment.dto.response.StudentResponse;
 import com.example.studentmangerment.entity.Student;
 import com.example.studentmangerment.entity.StudentInfo;
+import com.example.studentmangerment.entity.StudentWithInfo;
 import lombok.RequiredArgsConstructor;
 import org.seasar.doma.jdbc.Result;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,19 +28,15 @@ public class StudentService {
         int offset = (page - 1) * size;
 
         // Get total count
-        long totalElements = studentDao.countAll(code, name);
+        long totalElements = studentDao.countAll(code, name, birthday);
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
         // Get paginated students from database
-        List<Student> students = studentDao.findAllWithPaging(code, name, birthday, size, offset);
+        List<StudentWithInfo> students = studentDao.findAllWithPaging(code, name, birthday, size, offset);
 
-        // Map to response and fetch student info
+        // Map to response
         List<StudentResponse> studentResponses = students.stream()
-                .map(student -> {
-                    StudentInfo info = studentInfoDao.findByStudentId(student.getId()).orElse(null);
-                    return toResponse(student, info);
-                })
-                .filter(response -> birthday == null || (response.getBirthday() != null && isSameDay(response.getBirthday(), birthday)))
+                .map(this::toResponse)
                 .collect(Collectors.toList());
 
         // Sort students based on provided parameters
@@ -58,10 +54,6 @@ public class StudentService {
                 .build();
     }
 
-    private boolean isSameDay(Date date1, Date date2) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-        return dateFormat.format(date1).equals(dateFormat.format(date2));
-    }
 
     private List<StudentResponse> sortStudents(List<StudentResponse> students, String sortBy, String sortDirection) {
         if (sortBy == null || sortBy.trim().isEmpty()) {
@@ -177,6 +169,17 @@ public class StudentService {
         }
         Result<Student> studentResult = studentDao.delete(student);
         return studentResult;
+    }
+
+    private StudentResponse toResponse(StudentWithInfo studentWithInfo) {
+        return StudentResponse.builder()
+                .id(studentWithInfo.getId())
+                .name(studentWithInfo.getName())
+                .code(studentWithInfo.getCode())
+                .address(studentWithInfo.getAddress())
+                .averageScore(studentWithInfo.getAverageScore() != null ? studentWithInfo.getAverageScore() : 0.0)
+                .birthday(studentWithInfo.getBirthday())
+                .build();
     }
 
     private StudentResponse toResponse(Student student, StudentInfo studentInfo) {

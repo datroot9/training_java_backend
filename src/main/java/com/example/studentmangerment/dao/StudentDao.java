@@ -1,6 +1,7 @@
 package com.example.studentmangerment.dao;
 
 import com.example.studentmangerment.entity.Student;
+import com.example.studentmangerment.entity.StudentWithInfo;
 import org.seasar.doma.*;
 import org.seasar.doma.jdbc.Result;
 import org.seasar.doma.boot.ConfigAutowireable;
@@ -29,8 +30,8 @@ public interface StudentDao {
     Result<Student> delete(Student student);
 
     @Select
-    List<Student> findAllWithPaging(String code, String name, Date birthday , Integer limit, Integer offset);
+    List<StudentWithInfo> findAllWithPaging(String code, String name, Date birthday , Integer limit, Integer offset);
 
     @Select
-    Long countAll(String code, String name);
+    Long countAll(String code, String name, Date birthday);
 }
