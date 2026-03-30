@@ -87,10 +87,4 @@ public class StudentController {
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(file);
     }
-    // @PostMapping("/import")
-    // public ResponseEntity<ApiResponse<Void>> importStudents() {
-    // studentService.importStudents();
-    // return ResponseEntity.ok(ApiResponse.success("Students imported
-    // successfully", null));
-    // }
 }
