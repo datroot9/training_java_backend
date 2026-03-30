@@ -1,5 +1,8 @@
 package com.example.studentmangerment.batch;
 
+import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -12,23 +15,31 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.example.studentmangerment.dto.StudentCsvDto;
 import com.example.studentmangerment.entity.StudentWithInfo;
 
 @Configuration
 public class BatchConfig {
     @Bean
-    public FlatFileItemWriter<StudentWithInfo> studentCsvWriter() {
-        return new FlatFileItemWriterBuilder<StudentWithInfo>()
+
+    @StepScope
+    public FlatFileItemWriter<StudentCsvDto> studentCsvWriter(
+            @Value("#{jobParameters['timestamp']}") Long timestamp) {
+
+        long time = timestamp != null ? timestamp : System.currentTimeMillis();
+        String filename = "student_" + time + ".csv";
+
+        return new FlatFileItemWriterBuilder<StudentCsvDto>()
                 .name("studentCsvWriter")
-                .resource(new FileSystemResource("student.csv")) // Output file
-                .delimited() // Comma separated by default
+                .resource(new FileSystemResource(filename)) // Dynamic output file
+                .delimited().delimiter(";") // Comma separated by default
                 /*
                  * The names here MUST EXACTLY map to the variable names inside your
-                 * StudentWithInfo class
+                 * StudentCsvDto class
                  * e.g., if you have `private String name;`, put "name" here.
                  */
-                .names("id", "code", "name", "address", "averageScore", "birthday")
-                .headerCallback(writer -> writer.write("ID,Student Code,Student Name,Address,Average Score,Birthday"))
+                .names("id", "code", "name", "birthday", "address", "averageScore")
+                .headerCallback(writer -> writer.write("ID;Student Code;Student Name;Birthday;Address;Average Score"))
                 .build();
     }
 
@@ -41,11 +52,13 @@ public class BatchConfig {
 
     @Bean
     public Step exportStudentsStep(JobRepository jobRepository, StudentBatchReader reader,
-            FlatFileItemWriter<StudentWithInfo> writer,
+            StudentBatchProcessor processor,
+            FlatFileItemWriter<StudentCsvDto> writer,
             PlatformTransactionManager transactionManager) {
         return new StepBuilder("exportStudentsStep", jobRepository)
-                .<StudentWithInfo, StudentWithInfo>chunk(10, transactionManager)
+                .<StudentWithInfo, StudentCsvDto>chunk(10, transactionManager)
                 .reader(reader)
+                .processor(processor)
                 .writer(writer)
                 .build();
     }

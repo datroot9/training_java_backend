@@ -12,6 +12,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import java.util.Date;
 
@@ -70,8 +74,23 @@ public class StudentController {
     }
 
     @GetMapping("/export")
-    public ResponseEntity<ApiResponse<Void>> exportStudents() {
-        studentService.exportStudents();
-        return ResponseEntity.ok(ApiResponse.success("Students exported successfully", null));
+    public ResponseEntity<Resource> exportStudents() {
+        // Run the batch job to generate dynamic csv and get its filename
+        String filename = studentService.exportStudents();
+
+        // Load the generated CSV file
+        Resource file = new FileSystemResource(filename);
+
+        // Return the file back to the user's browser as a download attachment
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(file);
     }
+    // @PostMapping("/import")
+    // public ResponseEntity<ApiResponse<Void>> importStudents() {
+    // studentService.importStudents();
+    // return ResponseEntity.ok(ApiResponse.success("Students imported
+    // successfully", null));
+    // }
 }

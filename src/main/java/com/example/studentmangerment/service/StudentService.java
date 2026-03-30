@@ -199,14 +199,17 @@ public class StudentService {
                 .build();
     }
 
-    public void exportStudents() {
+    public String exportStudents() {
+        long timestamp = System.currentTimeMillis();
         JobParameters jobParameters = new JobParametersBuilder()
-                .addLong("timestamp", System.currentTimeMillis())
+                .addLong("timestamp", timestamp)
                 .toJobParameters();
         try {
             jobLauncher.run(exportStudentsJob, jobParameters);
+            return "student_" + timestamp + ".csv";
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException("Export failed", e);
         }
     }
 }
