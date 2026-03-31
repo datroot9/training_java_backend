@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.seasar.doma.Entity;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 

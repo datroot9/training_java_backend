@@ -10,7 +10,7 @@ public class CorsConfig implements WebMvcConfigurer {
 
     // Read the property from application.yaml or your .env format
     // providing a default fallback to localhost just in case it's missing
-    @Value("${FRONTEND_URL:http://localhost:5173}")
+    @Value("${FRONTEND_URL}")
     private String allowedOrigins;
 
     @Override

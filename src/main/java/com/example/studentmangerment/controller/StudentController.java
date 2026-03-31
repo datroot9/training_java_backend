@@ -47,15 +47,9 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<StudentResponse>> getStudentById(@PathVariable String id) {
-        try {
-            int studentId = Integer.parseInt(id);
-            StudentResponse student = studentService.getStudentById(studentId);
-            return ResponseEntity.ok(ApiResponse.success("Student retrieved successfully", student));
-        } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error(400, "Invalid student ID format. Expected a number."));
-        }
+    public ResponseEntity<ApiResponse<StudentResponse>> getStudentById(@PathVariable int id) {
+        StudentResponse student = studentService.getStudentById(id);
+        return ResponseEntity.ok(ApiResponse.success("Student retrieved successfully", student));
     }
 
     @PostMapping
@@ -67,26 +61,16 @@ public class StudentController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<StudentResponse>> updateStudent(
-            @PathVariable String id,
+            @PathVariable int id,
             @Valid @RequestBody StudentRequest request) {
-        try {
-            int studentId = Integer.parseInt(id);
-            StudentResponse student = studentService.updateStudent(studentId, request);
-            return ResponseEntity.ok(ApiResponse.success("Student updated successfully", student));
-        } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(400, "Invalid student ID format. Expected a number."));
-        }
+        StudentResponse student = studentService.updateStudent(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Student updated successfully", student));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable String id) {
-        try {
-            int studentId = Integer.parseInt(id);
-            studentService.deleteStudent(studentId);
-            return ResponseEntity.ok(ApiResponse.success("Student deleted successfully", null));
-        } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(400, "Invalid student ID format. Expected a number."));
-        }
+    public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable int id) {
+        studentService.deleteStudent(id);
+        return ResponseEntity.ok(ApiResponse.success("Student deleted successfully", null));
     }
 
     @GetMapping("/export")

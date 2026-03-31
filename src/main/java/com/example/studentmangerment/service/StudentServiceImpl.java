@@ -9,6 +9,9 @@ import com.example.studentmangerment.dto.response.StudentResponse;
 import com.example.studentmangerment.entity.Student;
 import com.example.studentmangerment.entity.StudentInfo;
 import com.example.studentmangerment.entity.StudentWithInfo;
+import com.example.studentmangerment.exception.AlreadyExistsException;
+import com.example.studentmangerment.exception.ResourceNotFoundException;
+import com.example.studentmangerment.mapper.StudentMapper;
 import lombok.RequiredArgsConstructor;
 import org.seasar.doma.jdbc.Result;
 import org.springframework.batch.core.Job;
@@ -27,6 +30,7 @@ public class StudentServiceImpl implements StudentService {
     private final StudentInfoDao studentInfoDao;
     private final JobLauncher jobLauncher;
     private final Job exportStudentsJob;
+    private final StudentMapper studentMapper;
 
     public PageResponse<StudentResponse> getAllStudents(String code, String name, Date birthday,
             PageRequest pageRequest) {
@@ -44,7 +48,7 @@ public class StudentServiceImpl implements StudentService {
 
         // Map to response
         List<StudentResponse> studentResponses = students.stream()
-                .map(this::toResponse)
+                .map(studentMapper::toResponse)
                 .collect(Collectors.toList());
 
         // Sort students based on provided parameters
@@ -100,17 +104,15 @@ public class StudentServiceImpl implements StudentService {
     }
 
     public StudentResponse getStudentById(int id) {
-        StudentWithInfo student = studentDao.findStudentWithInfoById(id).orElse(null);
-        if (student == null) {
-            throw new RuntimeException("Student not found with id: " + id);
-        }
-        return toResponse(student);
+        StudentWithInfo student = studentDao.findStudentWithInfoById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
+        return studentMapper.toResponse(student);
     }
 
     public StudentResponse createStudent(StudentRequest request) {
         // Check if code already exists
         if (studentDao.findByCode(request.getCode()).isPresent()) {
-            throw new RuntimeException("Student code already exists");
+            throw new AlreadyExistsException("Student code already exists: " + request.getCode());
         }
 
         Student student = Student.builder()
@@ -131,24 +133,20 @@ public class StudentServiceImpl implements StudentService {
 
         Result<StudentInfo> resultInfo = studentInfoDao.insert(studentInfo);
         StudentInfo insertedStudentInfo = resultInfo.getEntity();
-        return toResponse(insertedStudent, insertedStudentInfo);
+        return studentMapper.toResponse(insertedStudent, insertedStudentInfo);
     }
 
     public StudentResponse updateStudent(int id, StudentRequest request) {
-        Student student = studentDao.findById(id).orElse(null);
-        if (student == null) {
-            throw new RuntimeException("Student not found with id: " + id);
-        }
+        Student student = studentDao.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
 
-        StudentInfo studentInfo = studentInfoDao.findByStudentId(student.getId()).orElse(null);
-        if (studentInfo == null) {
-            throw new RuntimeException("Student info not found with id: " + id);
-        }
+        StudentInfo studentInfo = studentInfoDao.findByStudentId(student.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Student info not found for student id: " + id));
 
         // Check if code is being changed and already exists
         String newCode = request.getCode();
         if (newCode != null && !newCode.equals(student.getCode()) && studentDao.findByCode(newCode).isPresent()) {
-            throw new RuntimeException("Student code already exists");
+            throw new AlreadyExistsException("Student code already exists: " + newCode);
         }
         Student updatedStudent = Student.builder()
                 .id(student.getId())
@@ -165,39 +163,17 @@ public class StudentServiceImpl implements StudentService {
                 .build();
         studentDao.update(updatedStudent);
         studentInfoDao.update(updatedStudentInfo);
-        return toResponse(updatedStudent, updatedStudentInfo);
+        return studentMapper.toResponse(updatedStudent, updatedStudentInfo);
     }
 
     public Result<Student> deleteStudent(int id) {
-        Student student = studentDao.findById(id).orElse(null);
-        if (student == null) {
-            throw new RuntimeException("Student not found with id: " + id);
-        }
+        Student student = studentDao.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
         Result<Student> studentResult = studentDao.delete(student);
         return studentResult;
     }
 
-    private StudentResponse toResponse(StudentWithInfo studentWithInfo) {
-        return StudentResponse.builder()
-                .id(studentWithInfo.getId())
-                .name(studentWithInfo.getName())
-                .code(studentWithInfo.getCode())
-                .address(studentWithInfo.getAddress())
-                .averageScore(studentWithInfo.getAverageScore() != null ? studentWithInfo.getAverageScore() : 0.0)
-                .birthday(studentWithInfo.getBirthday())
-                .build();
-    }
-
-    private StudentResponse toResponse(Student student, StudentInfo studentInfo) {
-        return StudentResponse.builder()
-                .id(student.getId())
-                .name(student.getName())
-                .code(student.getCode())
-                .address(studentInfo != null ? studentInfo.getAddress() : null)
-                .averageScore(studentInfo != null ? studentInfo.getAverageScore() : 0.0)
-                .birthday(studentInfo != null ? studentInfo.getBirthday() : null)
-                .build();
-    }
+    // Removed manual toResponse methods - replaced by MapStruct mapper
 
     public String exportStudents() {
         long timestamp = System.currentTimeMillis();

@@ -21,7 +21,6 @@ import com.example.studentmangerment.entity.StudentWithInfo;
 @Configuration
 public class BatchConfig {
     @Bean
-
     @StepScope
     public FlatFileItemWriter<StudentCsvDto> studentCsvWriter(
             @Value("#{jobParameters['timestamp']}") Long timestamp) {
