@@ -25,6 +25,9 @@ public interface StudentDao {
     @Select
     Optional<Student> findByCode(String code);
 
+    @Select
+    Optional<StudentWithInfo> findWithInfoByCode(String code);
+
     @Update
     Result<Student> update(Student student);
 

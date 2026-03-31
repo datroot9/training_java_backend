@@ -109,6 +109,13 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toResponse(student);
     }
 
+    @Override
+    public StudentResponse getStudentByCode(String code) {
+        StudentWithInfo student = studentDao.findWithInfoByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with code: " + code));
+        return studentMapper.toResponse(student);
+    }
+
     public StudentResponse createStudent(StudentRequest request) {
         // Check if code already exists
         if (studentDao.findByCode(request.getCode()).isPresent()) {

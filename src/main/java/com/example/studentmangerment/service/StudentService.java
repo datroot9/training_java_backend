@@ -12,6 +12,7 @@ import java.util.Date;
 public interface StudentService {
     PageResponse<StudentResponse> getAllStudents(String code, String name, Date birthday, PageRequest pageRequest);
     StudentResponse getStudentById(int id);
+    StudentResponse getStudentByCode(String code);
     StudentResponse createStudent(StudentRequest request);
     StudentResponse updateStudent(int id, StudentRequest request);
     Result<Student> deleteStudent(int id);

@@ -52,6 +52,12 @@ public class StudentController {
         return ResponseEntity.ok(ApiResponse.success("Student retrieved successfully", student));
     }
 
+    @GetMapping("/code/{code}")
+    public ResponseEntity<ApiResponse<StudentResponse>> getStudentByCode(@PathVariable String code) {
+        StudentResponse student = studentService.getStudentByCode(code);
+        return ResponseEntity.ok(ApiResponse.success("Student retrieved successfully", student));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<StudentResponse>> createStudent(@Valid @RequestBody StudentRequest request) {
         StudentResponse student = studentService.createStudent(request);
