@@ -33,11 +33,6 @@ public class BatchConfig {
                 .name("studentCsvWriter")
                 .resource(new FileSystemResource(filename)) // Dynamic output file
                 .delimited().delimiter(";") // Comma separated by default
-                /*
-                 * The names here MUST EXACTLY map to the variable names inside your
-                 * StudentCsvDto class
-                 * e.g., if you have `private String name;`, put "name" here.
-                 */
                 .names("id", "code", "name", "birthday", "address", "averageScore")
                 .headerCallback(writer -> writer.write("ID;Student Code;Student Name;Birthday;Address;Average Score"))
                 .build();

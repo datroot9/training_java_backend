@@ -9,8 +9,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig implements WebMvcConfigurer {
 
     // Read the property from application.yaml or your .env format
-    // providing a default fallback to localhost:5173 just in case it's missing
-    @Value("http://localhost:5173")
+    // providing a default fallback to localhost just in case it's missing
+    @Value("${FRONTEND_URL:http://localhost:5173}")
     private String allowedOrigins;
 
     @Override

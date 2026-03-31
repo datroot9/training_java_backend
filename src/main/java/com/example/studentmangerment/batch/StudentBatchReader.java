@@ -3,6 +3,7 @@ package com.example.studentmangerment.batch;
 import com.example.studentmangerment.dao.StudentDao;
 import com.example.studentmangerment.entity.StudentWithInfo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Queue;
 
 @Component
+@StepScope
 @RequiredArgsConstructor
 public class StudentBatchReader implements ItemReader<StudentWithInfo> {
 
