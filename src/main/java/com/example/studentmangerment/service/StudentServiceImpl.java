@@ -32,6 +32,7 @@ public class StudentServiceImpl implements StudentService {
     private final JobLauncher jobLauncher;
     private final Job exportStudentsJob;
     private final StudentMapper studentMapper;
+
     public PageResponse<StudentResponse> getAllStudents(String code, String name, Date birthday,
             PageRequest pageRequest) {
         // Calculate offset for pagination
@@ -47,7 +48,8 @@ public class StudentServiceImpl implements StudentService {
         String orderByClause = validateAndGetOrderByClause(pageRequest.getSortBy(), pageRequest.getSortDirection());
 
         // Get paginated students from database with SQL sorting
-        List<StudentWithInfo> students = studentDao.findAllWithPaging(code, name, birthday, size, offset, orderByClause);
+        List<StudentWithInfo> students = studentDao.findAllWithPaging(code, name, birthday, size, offset,
+                orderByClause);
 
         // Map to response
         List<StudentResponse> studentResponses = students.stream()
@@ -73,13 +75,26 @@ public class StudentServiceImpl implements StudentService {
 
         String column;
         switch (sortBy.toLowerCase()) {
-            case "id": column = "s.student_id"; break;
-            case "name": column = "s.student_name"; break;
-            case "code": column = "s.student_code"; break;
-            case "address": column = "si.address"; break;
-            case "averagescore": column = "si.average_score"; break;
-            case "birthday": column = "si.date_of_birth"; break;
-            default: return "s.student_id ASC";
+            case "id":
+                column = "s.student_id";
+                break;
+            case "name":
+                column = "s.student_name";
+                break;
+            case "code":
+                column = "s.student_code";
+                break;
+            case "address":
+                column = "si.address";
+                break;
+            case "averagescore":
+                column = "si.average_score";
+                break;
+            case "birthday":
+                column = "si.date_of_birth";
+                break;
+            default:
+                return "s.student_id ASC";
         }
 
         String direction = "desc".equalsIgnoreCase(sortDirection) ? "DESC" : "ASC";
