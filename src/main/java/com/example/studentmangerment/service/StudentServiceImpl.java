@@ -19,6 +19,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,7 +32,6 @@ public class StudentServiceImpl implements StudentService {
     private final JobLauncher jobLauncher;
     private final Job exportStudentsJob;
     private final StudentMapper studentMapper;
-
     public PageResponse<StudentResponse> getAllStudents(String code, String name, Date birthday,
             PageRequest pageRequest) {
         // Calculate offset for pagination
@@ -43,16 +43,16 @@ public class StudentServiceImpl implements StudentService {
         long totalElements = studentDao.countAll(code, name, birthday);
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
-        // Get paginated students from database
-        List<StudentWithInfo> students = studentDao.findAllWithPaging(code, name, birthday, size, offset);
+        // Build dynamic ORDER BY clause
+        String orderByClause = validateAndGetOrderByClause(pageRequest.getSortBy(), pageRequest.getSortDirection());
+
+        // Get paginated students from database with SQL sorting
+        List<StudentWithInfo> students = studentDao.findAllWithPaging(code, name, birthday, size, offset, orderByClause);
 
         // Map to response
         List<StudentResponse> studentResponses = students.stream()
                 .map(studentMapper::toResponse)
                 .collect(Collectors.toList());
-
-        // Sort students based on provided parameters
-        studentResponses = sortStudents(studentResponses, pageRequest.getSortBy(), pageRequest.getSortDirection());
 
         // Build response
         return PageResponse.<StudentResponse>builder()
@@ -66,42 +66,27 @@ public class StudentServiceImpl implements StudentService {
                 .build();
     }
 
-    private List<StudentResponse> sortStudents(List<StudentResponse> students, String sortBy, String sortDirection) {
+    private String validateAndGetOrderByClause(String sortBy, String sortDirection) {
         if (sortBy == null || sortBy.trim().isEmpty()) {
-            return students;
+            return "s.student_id ASC";
         }
 
-        Comparator<StudentResponse> comparator;
-
+        String column;
         switch (sortBy.toLowerCase()) {
-            case "id":
-                comparator = Comparator.comparingInt(StudentResponse::getId);
-                break;
-            case "name":
-                comparator = Comparator.comparing(StudentResponse::getName);
-                break;
-            case "code":
-                comparator = Comparator.comparing(StudentResponse::getCode);
-                break;
-            case "address":
-                comparator = Comparator.comparing(StudentResponse::getAddress);
-                break;
-            case "averagescore":
-                comparator = Comparator.comparingDouble(StudentResponse::getAverageScore);
-                break;
-            case "birthday":
-                comparator = Comparator.comparing(StudentResponse::getBirthday);
-                break;
-            default:
-                return students; // No sorting if field not recognized
+            case "id": column = "s.student_id"; break;
+            case "name": column = "s.student_name"; break;
+            case "code": column = "s.student_code"; break;
+            case "address": column = "si.address"; break;
+            case "averagescore": column = "si.average_score"; break;
+            case "birthday": column = "si.date_of_birth"; break;
+            default: return "s.student_id ASC";
         }
 
-        if ("desc".equalsIgnoreCase(sortDirection)) {
-            comparator = comparator.reversed();
-        }
-
-        return students.stream().sorted(comparator).collect(Collectors.toList());
+        String direction = "desc".equalsIgnoreCase(sortDirection) ? "DESC" : "ASC";
+        return column + " " + direction;
     }
+
+    // Removed manual sortStudents - sorting now happens in SQL
 
     public StudentResponse getStudentById(int id) {
         StudentWithInfo student = studentDao.findStudentWithInfoById(id)
@@ -116,6 +101,7 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toResponse(student);
     }
 
+    @Transactional
     public StudentResponse createStudent(StudentRequest request) {
         // Check if code already exists
         if (studentDao.findByCode(request.getCode()).isPresent()) {
@@ -143,6 +129,7 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toResponse(insertedStudent, insertedStudentInfo);
     }
 
+    @Transactional
     public StudentResponse updateStudent(int id, StudentRequest request) {
         Student student = studentDao.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
@@ -173,6 +160,7 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toResponse(updatedStudent, updatedStudentInfo);
     }
 
+    @Transactional
     public Result<Student> deleteStudent(int id) {
         Student student = studentDao.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));

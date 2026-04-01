@@ -18,6 +18,6 @@ WHERE 1=1
 /*%if birthday != null*/
   AND DATE(si.date_of_birth) = DATE(/* birthday */'2004/01/01')
 /*%end*/
-ORDER BY s.student_id
+ORDER BY /*# orderByClause */, s.student_id
 LIMIT /* limit */10
 OFFSET /* offset */0

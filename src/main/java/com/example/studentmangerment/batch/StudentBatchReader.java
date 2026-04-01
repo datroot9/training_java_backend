@@ -30,7 +30,7 @@ public class StudentBatchReader implements ItemReader<StudentWithInfo> {
         // If our temporary cache is completely empty, it's time to query the database!
         if (studentCache.isEmpty()) {
             List<StudentWithInfo> nextPage = studentDao.findAllWithPaging(
-                    null, null, null, PAGE_SIZE, currentOffset);
+                    null, null, null, PAGE_SIZE, currentOffset, "s.student_id ASC");
 
             // Add the new fresh chunk to the queue
             studentCache.addAll(nextPage);

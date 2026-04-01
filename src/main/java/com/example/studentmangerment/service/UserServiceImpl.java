@@ -5,6 +5,7 @@ import com.example.studentmangerment.dto.request.LoginRequest;
 import com.example.studentmangerment.dto.request.RegisterRequest;
 import com.example.studentmangerment.dto.response.AuthResponse;
 import com.example.studentmangerment.entity.User;
+import com.example.studentmangerment.exception.AlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,10 +20,10 @@ public class UserServiceImpl implements UserService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userDao.findByUsername(request.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            throw new AlreadyExistsException("Username already exists: " + request.getUsername());
         }
         if (!request.getPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("Passwords do not match");
+            throw new IllegalArgumentException("Passwords do not match");
         }
 //        //hash password
         request.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));

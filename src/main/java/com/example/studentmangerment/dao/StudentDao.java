@@ -35,7 +35,7 @@ public interface StudentDao {
     Result<Student> delete(Student student);
 
     @Select
-    List<StudentWithInfo> findAllWithPaging(String code, String name, Date birthday , Integer limit, Integer offset);
+    List<StudentWithInfo> findAllWithPaging(String code, String name, Date birthday , Integer limit, Integer offset, String orderByClause);
 
     @Select
     Long countAll(String code, String name, Date birthday);
