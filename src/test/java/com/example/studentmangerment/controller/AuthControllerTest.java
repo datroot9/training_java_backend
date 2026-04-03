@@ -1,52 +1,233 @@
 package com.example.studentmangerment.controller;
 
-import com.example.studentmangerment.dto.request.LoginRequest;
-import com.example.studentmangerment.dto.request.RegisterRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.example.studentmangerment.config.SecurityConfig;
+import com.example.studentmangerment.dto.request.LoginRequest;
+import com.example.studentmangerment.dto.request.RegisterRequest;
+import com.example.studentmangerment.dto.response.AuthResponse;
+import com.example.studentmangerment.exception.AlreadyExistsException;
+import com.example.studentmangerment.security.JwtAuthenticationFilter;
+import com.example.studentmangerment.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.stream.Stream;
+
+@WebMvcTest(controllers = AuthController.class, excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtAuthenticationFilter.class) })
+@AutoConfigureMockMvc(addFilters = false)
+@DisplayName("Unit tests for AuthController")
 public class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    private UserService userService;
+
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Test
-    public void testRegisterAndLogin() throws Exception {
-        RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setUsername("testuser");
-        registerRequest.setPassword("password123");
-        registerRequest.setConfirmPassword("password123");
+    @Nested
+    @DisplayName("Tests for /api/auth/register")
+    class RegisterEndpoint {
 
-        // Register
-        mockMvc.perform(post("/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("testuser"));
+        @Test
+        @DisplayName("Should return 200 OK when registration is successful")
+        void testRegister_Success() throws Exception {
+            // Arrange
+            RegisterRequest request = new RegisterRequest();
+            request.setUsername("test@gmail.com");
+            request.setPassword("password123");
+            request.setConfirmPassword("password123");
 
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("testuser");
-        loginRequest.setPassword("password123");
+            AuthResponse response = AuthResponse.builder()
+                    .username("test@gmail.com")
+                    .build();
 
-        // Login
-        mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("testuser"));
+            Mockito.when(userService.register(any(RegisterRequest.class))).thenReturn(response);
+
+            // Act & Assert
+            mockMvc.perform(post("/api/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.data.username").value("test@gmail.com"));
+
+            verify(userService, times(1)).register(any(RegisterRequest.class));
+        }
+
+        @Test
+        @DisplayName("Should return 409 Conflict when user already exists")
+        void testRegister_AlreadyExists() throws Exception {
+            // Arrange
+            RegisterRequest request = new RegisterRequest();
+            request.setUsername("exists@gmail.com");
+            request.setPassword("password123");
+            request.setConfirmPassword("password123");
+
+            Mockito.when(userService.register(any(RegisterRequest.class)))
+                    .thenThrow(new AlreadyExistsException("User already exists"));
+
+            // Act & Assert
+            mockMvc.perform(post("/api/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.code").value(409))
+                    .andExpect(jsonPath("$.message").value("User already exists"));
+
+            verify(userService, times(1)).register(any(RegisterRequest.class));
+        }
+
+        @ParameterizedTest(name = "[{index}] {3}")
+        @MethodSource("registerValidationCases")
+        @DisplayName("Should return 400 Bad Request with specific field error for invalid register input")
+        void testRegister_ValidationFailure(String username, String password, String confirmPassword,
+                String description, String expectedField, String expectedFieldError)
+                throws Exception {
+            // Arrange
+            RegisterRequest request = new RegisterRequest();
+            request.setUsername(username);
+            request.setPassword(password);
+            request.setConfirmPassword(confirmPassword);
+
+            // Act & Assert
+            mockMvc.perform(post("/api/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value(400))
+                    .andExpect(jsonPath("$.message").value("Validation failed"))
+                    .andExpect(jsonPath("$.data." + expectedField).value(expectedFieldError));
+
+            verify(userService, times(0)).register(any(RegisterRequest.class));
+        }
+
+        static Stream<Arguments> registerValidationCases() {
+            return Stream.of(
+                    Arguments.of("", "password123", "password123",
+                            "Empty email", "username", "Email is required"),
+                    Arguments.of("invalid-email", "password123", "password123",
+                            "Invalid email format", "username", "Invalid email format"),
+                    Arguments.of("test@gmail.com", "", "password123",
+                            "Empty password", "password", "Password is required"),
+                    Arguments.of("test@gmail.com", "short", "short",
+                            "Password too short", "password",
+                            "Password must be at least 6 characters and no more than 15 characters")
+            );
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests for /api/auth/login")
+    class LoginEndpoint {
+
+        @Test
+        @DisplayName("Should return 200 OK when login is successful")
+        void testLogin_Success() throws Exception {
+            // Arrange
+            LoginRequest request = new LoginRequest();
+            request.setUsername("test@gmail.com");
+            request.setPassword("password123");
+
+            AuthResponse response = AuthResponse.builder()
+                    .username("test@gmail.com")
+                    .token("mock-token")
+                    .build();
+
+            Mockito.when(userService.login(any(LoginRequest.class))).thenReturn(response);
+
+            // Act & Assert
+            mockMvc.perform(post("/api/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.data.token").value("mock-token"));
+
+            verify(userService, times(1)).login(any(LoginRequest.class));
+        }
+
+        @Test
+        @DisplayName("Should return 500 Internal Server Error for invalid credentials")
+        void testLogin_InvalidCredentials() throws Exception {
+            // Arrange
+            LoginRequest request = new LoginRequest();
+            request.setUsername("wrong@gmail.com");
+            request.setPassword("wrongpass");
+
+            Mockito.when(userService.login(any(LoginRequest.class)))
+                    .thenThrow(new RuntimeException("Invalid username or password"));
+
+            // Act & Assert
+            mockMvc.perform(post("/api/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.message").value("Invalid username or password"));
+
+            verify(userService, times(1)).login(any(LoginRequest.class));
+        }
+
+        @ParameterizedTest(name = "[{index}] {2}")
+        @MethodSource("loginValidationCases")
+        @DisplayName("Should return 400 Bad Request with specific field error for invalid login input")
+        void testLogin_ValidationFailure(String username, String password,
+                String description, String expectedField, String expectedFieldError)
+                throws Exception {
+            // Arrange
+            LoginRequest request = new LoginRequest();
+            request.setUsername(username);
+            request.setPassword(password);
+
+            // Act & Assert
+            mockMvc.perform(post("/api/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value(400))
+                    .andExpect(jsonPath("$.message").value("Validation failed"))
+                    .andExpect(jsonPath("$.data." + expectedField).value(expectedFieldError));
+
+            verify(userService, times(0)).login(any(LoginRequest.class));
+        }
+
+        static Stream<Arguments> loginValidationCases() {
+            return Stream.of(
+                    Arguments.of("", "password123",
+                            "Empty email", "username", "Email is required"),
+                    Arguments.of("invalid-email", "password123",
+                            "Invalid email format", "username", "Invalid email format"),
+                    Arguments.of("test@gmail.com", "",
+                            "Empty password", "password", "Password is required"),
+                    Arguments.of("test@gmail.com", "short",
+                            "Password too short", "password",
+                            "Password must be at least 6 characters and no more than 15 characters")
+            );
+        }
     }
 }
