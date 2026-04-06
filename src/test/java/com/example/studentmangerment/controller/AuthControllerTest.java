@@ -133,12 +133,22 @@ public class AuthControllerTest {
                                                         "Empty email", "username", "Email is required"),
                                         Arguments.of("invalid-email", "password123", "password123",
                                                         "Invalid email format", "username", "Invalid email format"),
-                                        Arguments.of("test@gmail.com", "", "password123",
-                                                        "Empty password", "password",
-                                                        "assword must be at least 6 characters and no more than 15 characters"),
+                                        Arguments.of("verylongemail12345@gmail.com", "password123", "password123",
+                                                        "Email too long (>20)", "username",
+                                                        "Email must be less than 20 characters"),
                                         Arguments.of("test@gmail.com", "short", "short",
                                                         "Password too short", "password",
-                                                        "Password must be at least 6 characters and no more than 15 characters"));
+                                                        "Password must be at least 6 characters and no more than 15 characters"),
+                                        Arguments.of("test@gmail.com", "thispasswordiswaytoolong", "thispasswordiswaytoolong",
+                                                        "Password too long (>15)", "password",
+                                                        "Password must be at least 6 characters and no more than 15 characters"),
+                                        // @AsciiOnly validation
+                                        Arguments.of("テスト@gmail.com", "password123", "password123",
+                                                        "Non-ASCII username", "username",
+                                                        "Username can only contain English letters, numbers, and basic symbols"),
+                                        Arguments.of("test@gmail.com", "パスワード123456", "パスワード123456",
+                                                        "Non-ASCII password", "password",
+                                                        "Password can only contain English letters, numbers, and basic symbols"));
                 }
         }
 
@@ -222,12 +232,22 @@ public class AuthControllerTest {
                                                         "Empty email", "username", "Email is required"),
                                         Arguments.of("invalid-email", "password123",
                                                         "Invalid email format", "username", "Invalid email format"),
-                                        Arguments.of("test@gmail.com", "",
-                                                        "Empty password", "password",
-                                                        "Password must be at least 6 characters and no more than 15 characters"),
+                                        Arguments.of("verylongemail12345@gmail.com", "password123",
+                                                        "Email too long (>20)", "username",
+                                                        "Email must be less than 20 characters"),
                                         Arguments.of("test@gmail.com", "short",
                                                         "Password too short", "password",
-                                                        "Password must be at least 6 characters and no more than 15 characters"));
+                                                        "Password must be at least 6 characters and no more than 15 characters"),
+                                        Arguments.of("test@gmail.com", "thispasswordiswaytoolong",
+                                                        "Password too long (>15)", "password",
+                                                        "Password must be at least 6 characters and no more than 15 characters"),
+                                        // @AsciiOnly validation
+                                        Arguments.of("テスト@gmail.com", "password123",
+                                                        "Non-ASCII username", "username",
+                                                        "Username can only contain English letters, numbers, and basic symbols"),
+                                        Arguments.of("test@gmail.com", "パスワード123456",
+                                                        "Non-ASCII password", "password",
+                                                        "Password can only contain English letters, numbers, and basic symbols"));
                 }
         }
 }
