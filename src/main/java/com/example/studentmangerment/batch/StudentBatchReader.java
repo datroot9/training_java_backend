@@ -4,7 +4,9 @@ import com.example.studentmangerment.dao.StudentDao;
 import com.example.studentmangerment.entity.StudentWithInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.item.ItemStreamException;
+import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
@@ -14,7 +16,9 @@ import java.util.Queue;
 @Component
 @StepScope
 @RequiredArgsConstructor
-public class StudentBatchReader implements ItemReader<StudentWithInfo> {
+public class StudentBatchReader implements ItemStreamReader<StudentWithInfo> {
+
+    private static final String OFFSET_KEY = "StudentBatchReader.currentOffset";
 
     private final StudentDao studentDao;
 
@@ -47,5 +51,31 @@ public class StudentBatchReader implements ItemReader<StudentWithInfo> {
          * "we have reached the end of the data".
          */
         return studentCache.poll();
+    }
+
+    @Override
+    public void open(ExecutionContext executionContext) throws ItemStreamException {
+        // When the job starts or restarts, check if we have a saved offset.
+        if (executionContext.containsKey(OFFSET_KEY)) {
+            // Restore the state from the previous interrupted run
+            currentOffset = executionContext.getInt(OFFSET_KEY);
+        } else {
+            // Fresh run, start from 0
+            currentOffset = 0;
+            executionContext.putInt(OFFSET_KEY, currentOffset);
+        }
+    }
+
+    @Override
+    public void update(ExecutionContext executionContext) throws ItemStreamException {
+        // Periodically invoked by Spring Batch (usually at chunk boundaries).
+        // Save our current progress in case of failure.
+        executionContext.putInt(OFFSET_KEY, currentOffset);
+    }
+
+    @Override
+    public void close() throws ItemStreamException {
+        // Clean up resources if necessary when step completes.
+        studentCache.clear();
     }
 }
