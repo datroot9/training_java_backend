@@ -1,48 +1,16 @@
 version: '3.8'
 
 services:
-  mysql-db:
-    image: mysql:8.0
-    container_name: student_mysql
-    environment:
-      # These variables initialize the Database internally immediately at startup
-      MYSQL_DATABASE: student_management
-      MYSQL_ROOT_PASSWORD: mysecretpassword
-    ports:
-      - "3306:3306" # Maps your host laptop port to the container port
-    volumes:
-      # Saves the SQL data into a Docker Volume so data survives when container stops
-      - mysql_data:/var/lib/mysql
-    networks:
-      - app-network
-    # Healthcheck ensures the DB is definitely online before Spring Boot boots up
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
-
   spring-app:
-    build:
-      context: . # This tells docker-compose to use your Dockerfile in this directory
-      dockerfile: Dockerfile
+    build: .
     container_name: student_backend
-    ports:
-      - "8080:8080"
+    network_mode: "host"
+    env_file:
+      - .env
     environment:
-      # Overrides `localhost` from application.yaml, pointing logically to the other container
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/student_management?useSSL=false&allowPublicKeyRetrieval=true
+      # Khi dùng network_mode: host, localhost chính là máy host của bạn
+      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/student_management?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
-      # Must rigorously match the root password given in `mysql-db` above!
-      DB_PASSWORD: mysecretpassword 
-    depends_on:
-      mysql-db:
-        condition: service_healthy # Wait for MySQL to finish initializing
-    networks:
-      - app-network
-
-volumes:
-  mysql_data:
-
-networks:
-  app-network:
-    driver: bridge
+      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+
