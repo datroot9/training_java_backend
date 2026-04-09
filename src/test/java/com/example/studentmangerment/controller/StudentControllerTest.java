@@ -300,7 +300,7 @@ public class StudentControllerTest {
                                                         "Empty address", "address", "Address is required"),
                                         Arguments.of("Nguyen Van A", "STU001", "HN", 8.5,
                                                         "Address too short", "address",
-                                                        "Address must be between 5 and 200 characters"),
+                                                        "Address must not exceed 255 bytes"),
                                         // averageScore validation
                                         Arguments.of("Nguyen Van A", "STU001", "Ha Noi, Viet Nam", -1.0,
                                                         "Score below 0", "averageScore",
@@ -445,7 +445,7 @@ public class StudentControllerTest {
                                                         "Empty address", "address", "Address is required"),
                                         Arguments.of("Nguyen Van A", "STU001", "HN", 8.5,
                                                         "Address too short", "address",
-                                                        "Address must be between 5 and 200 characters"),
+                                                        "Address must not exceed 255 bytes"),
                                         // averageScore validation
                                         Arguments.of("Nguyen Van A", "STU001", "Ha Noi, Viet Nam", -1.0,
                                                         "Score below 0", "averageScore",

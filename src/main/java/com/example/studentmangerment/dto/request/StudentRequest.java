@@ -28,7 +28,7 @@ public class StudentRequest {
     private String code;
 
     @NotBlank(message = "Address is required")
-    @Size(min = 5, max = 200, message = "Address must be between 5 and 200 characters")
+    @Size(min = 5, max = 200, message = "Address must not exceed 255 bytes")
     @ByteSize(max = 255, message = "Address must not exceed 255 bytes")
     private String address;
 
