@@ -11,6 +11,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.Arrays;
 
 @Configuration
+/**
+ * CORS configuration for frontend-to-backend communication.
+ *
+ * <p>Allowed origins are loaded from {@code FRONTEND_URL} and can contain
+ * multiple comma-separated values.
+ */
 public class CorsConfig implements WebMvcConfigurer {
 
     @Value("${FRONTEND_URL}")

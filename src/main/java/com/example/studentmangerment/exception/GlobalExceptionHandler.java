@@ -14,8 +14,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+/**
+ * Centralized exception mapping for REST controllers.
+ *
+ * <p>Converts exceptions into consistent {@link ApiResponse} error payloads.
+ */
 public class GlobalExceptionHandler {
 
+    /**
+     * Handles Bean Validation errors and returns field-level messages.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
@@ -35,6 +43,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    /**
+     * Handles malformed JSON and date parsing issues.
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         String msg = ex.getMessage();
@@ -46,26 +57,39 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), "Invalid request body format"));
     }
 
+    /**
+     * Handles query/path parameter type mismatch errors.
+     */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        String typeName = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown type";
+        Class<?> requiredType = ex.getRequiredType();
+        String typeName = requiredType == null ? "unknown type" : requiredType.getSimpleName();
         String detailMessage = String.format("The parameter '%s' should be of type '%s'", ex.getName(), typeName);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), detailMessage));
     }
 
+    /**
+     * Maps missing resource errors to HTTP 404.
+     */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleResourceNotFoundException(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
     }
 
+    /**
+     * Maps duplicate/conflict errors to HTTP 409.
+     */
     @ExceptionHandler(AlreadyExistsException.class)
     public ResponseEntity<ApiResponse<Void>> handleAlreadyExistsException(AlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error(HttpStatus.CONFLICT.value(), ex.getMessage()));
     }
 
+    /**
+     * Fallback handler for runtime exceptions.
+     */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
         ApiResponse<Void> response = ApiResponse.error(
@@ -75,6 +99,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    /**
+     * Final fallback for all unexpected checked exceptions.
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
         ApiResponse<Void> response = ApiResponse.error(

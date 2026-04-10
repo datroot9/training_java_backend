@@ -18,6 +18,12 @@ import lombok.AllArgsConstructor;
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
+/**
+ * Spring Security configuration for JWT-based stateless authentication.
+ *
+ * <p>Permits authentication and OpenAPI paths, protects all other endpoints,
+ * and installs the JWT filter before the username/password filter.
+ */
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -28,6 +34,13 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Builds the security filter chain used by the application.
+     *
+     * @param http mutable security builder from Spring Security
+     * @return configured filter chain
+     * @throws Exception if the chain cannot be built
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource))

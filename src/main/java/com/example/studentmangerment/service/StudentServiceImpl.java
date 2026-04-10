@@ -26,6 +26,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+/**
+ * Default {@link StudentService} implementation backed by Doma DAOs and Spring Batch.
+ */
 public class StudentServiceImpl implements StudentService {
     private final StudentDao studentDao;
     private final StudentInfoDao studentInfoDao;
@@ -33,6 +36,10 @@ public class StudentServiceImpl implements StudentService {
     private final Job exportStudentsJob;
     private final StudentMapper studentMapper;
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public PageResponse<StudentResponse> getAllStudents(String code, String name, Date birthday,
             PageRequest pageRequest) {
         // Calculate offset for pagination
@@ -68,6 +75,9 @@ public class StudentServiceImpl implements StudentService {
                 .build();
     }
 
+    /**
+     * Validates supported sort fields and builds a safe SQL {@code ORDER BY} fragment.
+     */
     private String validateAndGetOrderByClause(String sortBy, String sortDirection) {
         if (sortBy == null || sortBy.trim().isEmpty()) {
             return "s.student_id ASC";
@@ -103,12 +113,19 @@ public class StudentServiceImpl implements StudentService {
 
     // Removed manual sortStudents - sorting now happens in SQL
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public StudentResponse getStudentById(int id) {
         StudentWithInfo student = studentDao.findStudentWithInfoById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
         return studentMapper.toResponse(student);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public StudentResponse getStudentByCode(String code) {
         StudentWithInfo student = studentDao.findWithInfoByCode(code)
@@ -116,6 +133,10 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toResponse(student);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public StudentResponse createStudent(StudentRequest request) {
         // Check if code already exists
@@ -144,6 +165,10 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toResponse(insertedStudent, insertedStudentInfo);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public StudentResponse updateStudent(int id, StudentRequest request) {
         Student student = studentDao.findById(id)
@@ -175,6 +200,10 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toResponse(updatedStudent, updatedStudentInfo);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public Result<Student> deleteStudent(int id) {
         Student student = studentDao.findById(id)
@@ -185,6 +214,10 @@ public class StudentServiceImpl implements StudentService {
 
     // Removed manual toResponse methods - replaced by MapStruct mapper
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String exportStudents() {
         long timestamp = System.currentTimeMillis();
         JobParameters jobParameters = new JobParametersBuilder()

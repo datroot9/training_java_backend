@@ -12,12 +12,21 @@ import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 
 @Component
+/**
+ * Utility component for JWT token creation and validation.
+ */
 public class JwtUtils {
     @Value("${jwtSecret}")
     private String jwtSecret;
     @Value("${jwtExpiration}")
     private long jwtExpirationMs;
 
+    /**
+     * Generates a signed JWT token for a username.
+     *
+     * @param username authenticated principal name
+     * @return signed JWT token string
+     */
     public String generateToken(String username) {
         Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         return Jwts.builder()
@@ -28,6 +37,12 @@ public class JwtUtils {
                 .compact();
     }
 
+    /**
+     * Validates token signature and expiration.
+     *
+     * @param token bearer token value
+     * @return {@code true} when token is valid; otherwise {@code false}
+     */
     public boolean validateToken(String token) {
         try {
             Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
@@ -38,6 +53,12 @@ public class JwtUtils {
         }
     }
 
+    /**
+     * Extracts username (subject) from a valid token.
+     *
+     * @param token JWT token
+     * @return username stored in token subject claim
+     */
     public String getUsernameFromToken(String token) {
         Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();

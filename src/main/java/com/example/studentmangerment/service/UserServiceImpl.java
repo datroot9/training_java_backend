@@ -14,11 +14,18 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+/**
+ * Default {@link UserService} implementation using DAO persistence and JWT generation.
+ */
 public class UserServiceImpl implements UserService {
     private final UserDao userDao;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtUtils jwtUtils;
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public AuthResponse register(RegisterRequest request) {
         if (userDao.findByUsername(request.getUsername()).isPresent()) {
             throw new AlreadyExistsException("Username already exists: " + request.getUsername());
@@ -41,6 +48,10 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public AuthResponse login(LoginRequest request) {
         User user = userDao.findByUsername(request.getUsername())
                 .orElse(null);
