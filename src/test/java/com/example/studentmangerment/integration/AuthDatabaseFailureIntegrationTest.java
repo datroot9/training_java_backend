@@ -31,7 +31,7 @@ class AuthDatabaseFailureIntegrationTest extends BaseAuthIntegrationTest {
                     .andExpect(jsonPath("$.code").value(500));
         } finally {
             jdbcTemplate.execute(
-                    "CREATE TABLE IF NOT EXISTS user (user_id INT AUTO_INCREMENT PRIMARY KEY, user_name VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL)");
+                    "CREATE TABLE IF NOT EXISTS user (user_id INT AUTO_INCREMENT PRIMARY KEY, user_name VARCHAR(255) NOT NULL UNIQUE, password VARCHAR(255) NOT NULL, role VARCHAR(32) NOT NULL DEFAULT 'USER')");
         }
     }
 
@@ -49,7 +49,7 @@ class AuthDatabaseFailureIntegrationTest extends BaseAuthIntegrationTest {
                     .andExpect(jsonPath("$.code").value(500));
         } finally {
             jdbcTemplate.execute(
-                    "CREATE TABLE IF NOT EXISTS user (user_id INT AUTO_INCREMENT PRIMARY KEY, user_name VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL)");
+                    "CREATE TABLE IF NOT EXISTS user (user_id INT AUTO_INCREMENT PRIMARY KEY, user_name VARCHAR(255) NOT NULL UNIQUE, password VARCHAR(255) NOT NULL, role VARCHAR(32) NOT NULL DEFAULT 'USER')");
         }
     }
 }

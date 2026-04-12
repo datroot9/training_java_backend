@@ -1,5 +1,6 @@
 package com.example.studentmangerment.integration;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,7 +23,7 @@ class StudentValidationIntegrationTest extends BaseStudentIntegrationTest {
     @Test
     @DisplayName("invalid payload returns 400 with validation message")
     void createStudent_invalidRequest_returns400() throws Exception {
-        String authHeader = validAuthHeader();
+        String authHeader = adminAuthHeader();
         Map<String, Object> invalidPayload = Map.of(
                 "name", "",
                 "code", "BAD",
@@ -36,7 +37,7 @@ class StudentValidationIntegrationTest extends BaseStudentIntegrationTest {
                         .content(toJson(invalidPayload)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.message", containsString("Invalid input")))
                 .andExpect(jsonPath("$.data.name").exists())
                 .andExpect(jsonPath("$.data.code").exists())
                 .andExpect(jsonPath("$.data.address").exists())
@@ -47,7 +48,7 @@ class StudentValidationIntegrationTest extends BaseStudentIntegrationTest {
     @Test
     @DisplayName("missing request body returns 400")
     void createStudent_noBody_returns400() throws Exception {
-        String authHeader = validAuthHeader();
+        String authHeader = adminAuthHeader();
         mockMvc.perform(post(STUDENTS_ENDPOINT)
                         .header("Authorization", authHeader)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -58,7 +59,7 @@ class StudentValidationIntegrationTest extends BaseStudentIntegrationTest {
     @Test
     @DisplayName("malformed JSON returns 400")
     void createStudent_malformedJson_returns400() throws Exception {
-        String authHeader = validAuthHeader();
+        String authHeader = adminAuthHeader();
         mockMvc.perform(post(STUDENTS_ENDPOINT)
                         .header("Authorization", authHeader)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,7 +71,7 @@ class StudentValidationIntegrationTest extends BaseStudentIntegrationTest {
     @Test
     @DisplayName("birthday format parse error returns 400 with format message")
     void createStudent_invalidBirthdayFormat_returns400() throws Exception {
-        String authHeader = validAuthHeader();
+        String authHeader = adminAuthHeader();
         Map<String, Object> payload = Map.of(
                 "name", VALID_NAME,
                 "code", "STU003",
@@ -84,6 +85,6 @@ class StudentValidationIntegrationTest extends BaseStudentIntegrationTest {
                         .content(toJson(payload)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("format input birthday (yyyy/MM/dd)"));
+                .andExpect(jsonPath("$.message", containsString("yyyy/MM/dd")));
     }
 }

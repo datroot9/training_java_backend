@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.studentmangerment.dao.UserDao;
 import com.example.studentmangerment.dto.request.LoginRequest;
@@ -65,6 +66,7 @@ class UserServiceTest {
                 .id(1)
                 .username("test@gmail.com")
                 .password("hashedPassword")
+                .role("USER")
                 .build();
     }
 
@@ -85,6 +87,7 @@ class UserServiceTest {
             // Assert
             assertNotNull(response);
             assertEquals(registerRequest.getUsername(), response.getUsername());
+            assertEquals("USER", response.getRole());
             verify(userDao, times(1)).insert(any(User.class));
             verify(bCryptPasswordEncoder, times(1)).encode("password123");
         }
@@ -131,29 +134,30 @@ class UserServiceTest {
             assertNotNull(response);
             assertEquals("mock-jwt-token", response.getToken());
             assertEquals(user.getUsername(), response.getUsername());
+            assertEquals("USER", response.getRole());
             verify(jwtUtils, times(1)).generateToken(user.getUsername());
         }
 
         @Test
-        @DisplayName("Should throw RuntimeException for non-existent user")
+        @DisplayName("Should throw ResponseStatusException 401 for non-existent user")
         void testLogin_UserNotFound() {
             // Arrange
             when(userDao.findByUsername(anyString())).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertThrows(RuntimeException.class, () -> userService.login(loginRequest));
+            assertThrows(ResponseStatusException.class, () -> userService.login(loginRequest));
             verify(jwtUtils, never()).generateToken(anyString());
         }
 
         @Test
-        @DisplayName("Should throw RuntimeException for incorrect password")
+        @DisplayName("Should throw ResponseStatusException 401 for incorrect password")
         void testLogin_InvalidPassword() {
             // Arrange
             when(userDao.findByUsername(anyString())).thenReturn(Optional.of(user));
             when(bCryptPasswordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
             // Act & Assert
-            assertThrows(RuntimeException.class, () -> userService.login(loginRequest));
+            assertThrows(ResponseStatusException.class, () -> userService.login(loginRequest));
             verify(jwtUtils, never()).generateToken(anyString());
         }
     }

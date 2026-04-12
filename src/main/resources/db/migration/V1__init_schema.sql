@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS user (
+-- Baseline schema (MySQL). Flyway runs this on empty databases.
+CREATE TABLE IF NOT EXISTS `user` (
   user_id INT AUTO_INCREMENT PRIMARY KEY,
   user_name VARCHAR(255) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,

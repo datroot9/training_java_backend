@@ -27,6 +27,10 @@ abstract class BaseStudentIntegrationTest extends BaseAuthIntegrationTest {
         return "Bearer " + jwtUtils.generateToken(DEFAULT_TOKEN_EMAIL);
     }
 
+    protected String adminAuthHeader() {
+        return "Bearer " + jwtUtils.generateToken(ADMIN_EMAIL);
+    }
+
     protected Map<String, Object> validStudentPayload(String code) {
         return Map.of(
                 "name", VALID_NAME,
@@ -40,9 +44,10 @@ abstract class BaseStudentIntegrationTest extends BaseAuthIntegrationTest {
         return Objects.requireNonNull(objectMapper.writeValueAsString(value));
     }
 
-    protected int createStudent(String code, String authHeader) throws Exception {
+    /** Creates a student using an admin token (POST is admin-only). */
+    protected int createStudent(String code) throws Exception {
         ResultActions result = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(STUDENTS_ENDPOINT)
-                .header("Authorization", authHeader)
+                .header("Authorization", adminAuthHeader())
                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                 .content(toJson(validStudentPayload(code))));
 

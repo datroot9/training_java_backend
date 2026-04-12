@@ -37,27 +37,27 @@ class AuthLoginIntegrationTest extends BaseAuthIntegrationTest {
     }
 
     @Test
-    @DisplayName("wrong password -> 500")
+    @DisplayName("wrong password -> 401")
     void wrongPassword() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new LoginPayload(EXISTING_EMAIL, "wrong123"))))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("Invalid username or password"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 
     @Test
-    @DisplayName("non-existent user -> 500")
+    @DisplayName("non-existent user -> 401")
     void nonExistentUser() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new LoginPayload("no@test.com", "pass123"))))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("Invalid username or password"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 
     @Test

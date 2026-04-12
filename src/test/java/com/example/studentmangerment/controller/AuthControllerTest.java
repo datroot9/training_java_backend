@@ -3,6 +3,7 @@ package com.example.studentmangerment.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,8 +21,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.studentmangerment.config.SecurityConfig;
 import com.example.studentmangerment.dto.request.LoginRequest;
@@ -121,7 +124,7 @@ public class AuthControllerTest {
                                         .content(objectMapper.writeValueAsString(request)))
                                         .andExpect(status().isBadRequest())
                                         .andExpect(jsonPath("$.code").value(400))
-                                        .andExpect(jsonPath("$.message").value("Validation failed"))
+                                        .andExpect(jsonPath("$.message", containsString(expectedFieldError)))
                                         .andExpect(jsonPath("$.data." + expectedField).value(expectedFieldError));
 
                         verify(userService, times(0)).register(any(RegisterRequest.class));
@@ -183,7 +186,7 @@ public class AuthControllerTest {
                 }
 
                 @Test
-                @DisplayName("Should return 500 Internal Server Error for invalid credentials")
+                @DisplayName("Should return 401 Unauthorized for invalid credentials")
                 void testLogin_InvalidCredentials() throws Exception {
                         // Arrange
                         LoginRequest request = new LoginRequest();
@@ -191,14 +194,15 @@ public class AuthControllerTest {
                         request.setPassword("wrongpass");
 
                         Mockito.when(userService.login(any(LoginRequest.class)))
-                                        .thenThrow(new RuntimeException("Invalid username or password"));
+                                        .thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                                                        "Invalid email or password"));
 
                         // Act & Assert
                         mockMvc.perform(post("/api/auth/login")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(objectMapper.writeValueAsString(request)))
-                                        .andExpect(status().isInternalServerError())
-                                        .andExpect(jsonPath("$.message").value("Invalid username or password"));
+                                        .andExpect(status().isUnauthorized())
+                                        .andExpect(jsonPath("$.message").value("Invalid email or password"));
 
                         verify(userService, times(1)).login(any(LoginRequest.class));
                 }
@@ -220,7 +224,7 @@ public class AuthControllerTest {
                                         .content(objectMapper.writeValueAsString(request)))
                                         .andExpect(status().isBadRequest())
                                         .andExpect(jsonPath("$.code").value(400))
-                                        .andExpect(jsonPath("$.message").value("Validation failed"))
+                                        .andExpect(jsonPath("$.message", containsString(expectedFieldError)))
                                         .andExpect(jsonPath("$.data." + expectedField).value(expectedFieldError));
 
                         verify(userService, times(0)).login(any(LoginRequest.class));

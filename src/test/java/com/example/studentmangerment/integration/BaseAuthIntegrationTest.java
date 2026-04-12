@@ -13,6 +13,7 @@ abstract class BaseAuthIntegrationTest {
     protected static final String EXISTING_EMAIL = "user@test.com";
     protected static final String EXISTING_PASSWORD = "pass123";
     protected static final String NEW_EMAIL = "new@test.com";
+    protected static final String ADMIN_EMAIL = "admin@test.com";
 
     @Autowired
     protected MockMvc mockMvc;
@@ -31,9 +32,13 @@ abstract class BaseAuthIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        String encoded = passwordEncoder.encode(EXISTING_PASSWORD);
         jdbcTemplate.update(
-                "INSERT INTO user (user_name, password) VALUES (?, ?)",
-                EXISTING_EMAIL, passwordEncoder.encode(EXISTING_PASSWORD));
+                "INSERT INTO user (user_name, password, role) VALUES (?, ?, ?)",
+                EXISTING_EMAIL, encoded, "USER");
+        jdbcTemplate.update(
+                "INSERT INTO user (user_name, password, role) VALUES (?, ?, ?)",
+                ADMIN_EMAIL, encoded, "ADMIN");
     }
 
     @AfterEach
