@@ -42,14 +42,14 @@ class AuthRegisterIntegrationTest extends BaseAuthIntegrationTest {
     }
 
     @Test
-    @DisplayName("mismatched confirmPassword -> 500")
+    @DisplayName("mismatched confirmPassword -> 400")
     void passwordMismatch() throws Exception {
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new RegisterPayload(NEW_EMAIL, "pass123", "differ12"))))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("Passwords do not match"));
     }
 
@@ -62,7 +62,7 @@ class AuthRegisterIntegrationTest extends BaseAuthIntegrationTest {
                                 new RegisterPayload("", "pass123", "pass123"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.message").value("Invalid input: username — Email is required"))
                 .andExpect(jsonPath("$.data.username").exists());
     }
 

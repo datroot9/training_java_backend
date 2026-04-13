@@ -25,10 +25,10 @@ class StudentCrudIntegrationTest extends BaseStudentIntegrationTest {
     @Test
     @DisplayName("create -> get by id -> get by code")
     void createAndGetStudent_success() throws Exception {
-        String authHeader = validAuthHeader();
+        String userHeader = validAuthHeader();
 
         var createResult = mockMvc.perform(post(STUDENTS_ENDPOINT)
-                        .header("Authorization", authHeader)
+                        .header("Authorization", adminAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(validStudentPayload("STU001"))))
                 .andExpect(status().isCreated())
@@ -40,14 +40,14 @@ class StudentCrudIntegrationTest extends BaseStudentIntegrationTest {
                 createResult.getResponse().getContentAsString(), "$.data.id");
 
         mockMvc.perform(get(STUDENTS_BY_ID_ENDPOINT, id)
-                        .header("Authorization", authHeader))
+                        .header("Authorization", userHeader))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.id").value(id))
                 .andExpect(jsonPath("$.data.code").value("STU001"));
 
         mockMvc.perform(get(STUDENTS_BY_CODE_ENDPOINT, "STU001")
-                        .header("Authorization", authHeader))
+                        .header("Authorization", userHeader))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.id").value(id))
@@ -57,8 +57,7 @@ class StudentCrudIntegrationTest extends BaseStudentIntegrationTest {
     @Test
     @DisplayName("update existing student")
     void updateStudent_success() throws Exception {
-        String authHeader = validAuthHeader();
-        int id = createStudent("STU001", authHeader);
+        int id = createStudent("STU001");
 
         Map<String, Object> updatePayload = Map.of(
                 "name", "Nguyen Van B",
@@ -68,7 +67,7 @@ class StudentCrudIntegrationTest extends BaseStudentIntegrationTest {
                 "birthday", "2002/12/31");
 
         mockMvc.perform(put(STUDENTS_BY_ID_ENDPOINT, id)
-                        .header("Authorization", authHeader)
+                        .header("Authorization", adminAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(updatePayload)))
                 .andExpect(status().isOk())
@@ -81,28 +80,64 @@ class StudentCrudIntegrationTest extends BaseStudentIntegrationTest {
     @Test
     @DisplayName("delete existing student")
     void deleteStudent_success() throws Exception {
-        String authHeader = validAuthHeader();
-        int id = createStudent("STU001", authHeader);
+        String userHeader = validAuthHeader();
+        int id = createStudent("STU001");
 
         mockMvc.perform(delete(STUDENTS_BY_ID_ENDPOINT, id)
-                        .header("Authorization", authHeader))
+                        .header("Authorization", adminAuthHeader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
 
         mockMvc.perform(get(STUDENTS_BY_ID_ENDPOINT, id)
-                        .header("Authorization", authHeader))
+                        .header("Authorization", userHeader))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404));
     }
 
     @Test
+    @DisplayName("delete as non-admin returns 403")
+    void deleteStudent_asUser_returns403() throws Exception {
+        String userHeader = validAuthHeader();
+        int id = createStudent("STU001");
+
+        mockMvc.perform(delete(STUDENTS_BY_ID_ENDPOINT, id)
+                        .header("Authorization", userHeader))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(403));
+    }
+
+    @Test
+    @DisplayName("create as non-admin returns 403")
+    void createStudent_asUser_returns403() throws Exception {
+        mockMvc.perform(post(STUDENTS_ENDPOINT)
+                        .header("Authorization", validAuthHeader())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(validStudentPayload("STU001"))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(403));
+    }
+
+    @Test
+    @DisplayName("update as non-admin returns 403")
+    void updateStudent_asUser_returns403() throws Exception {
+        int id = createStudent("STU001");
+        Map<String, Object> updatePayload = validStudentPayload("STU009");
+
+        mockMvc.perform(put(STUDENTS_BY_ID_ENDPOINT, id)
+                        .header("Authorization", validAuthHeader())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(updatePayload)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(403));
+    }
+
+    @Test
     @DisplayName("create duplicate code returns 409")
     void createStudent_duplicateCode_returns409() throws Exception {
-        String authHeader = validAuthHeader();
-        createStudent("STU001", authHeader);
+        createStudent("STU001");
 
         mockMvc.perform(post(STUDENTS_ENDPOINT)
-                        .header("Authorization", authHeader)
+                        .header("Authorization", adminAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(validStudentPayload("STU001"))))
                 .andExpect(status().isConflict())
@@ -113,21 +148,19 @@ class StudentCrudIntegrationTest extends BaseStudentIntegrationTest {
     @Test
     @DisplayName("update code to existing code returns 409")
     void updateStudent_duplicateCode_returns409() throws Exception {
-        String authHeader = validAuthHeader();
-        int firstId = createStudent("STU001", authHeader);
-        int secondId = createStudent("STU002", authHeader);
+        int firstId = createStudent("STU001");
+        int secondId = createStudent("STU002");
 
         Map<String, Object> updatePayload = validStudentPayload("STU001");
 
         mockMvc.perform(put(STUDENTS_BY_ID_ENDPOINT, secondId)
-                        .header("Authorization", authHeader)
+                        .header("Authorization", adminAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(updatePayload)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value(409))
                 .andExpect(jsonPath("$.message").value("Student code already exists: STU001"));
 
-        // keep compiler happy with explicit use
         org.junit.jupiter.api.Assertions.assertTrue(firstId > 0);
     }
 
@@ -147,7 +180,7 @@ class StudentCrudIntegrationTest extends BaseStudentIntegrationTest {
                 .andExpect(jsonPath("$.code").value(404));
 
         mockMvc.perform(delete(STUDENTS_BY_ID_ENDPOINT, 9999)
-                        .header("Authorization", authHeader))
+                        .header("Authorization", adminAuthHeader()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404));
     }

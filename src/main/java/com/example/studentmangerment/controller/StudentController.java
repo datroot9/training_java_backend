@@ -8,6 +8,7 @@ import com.example.studentmangerment.dto.response.StudentResponse;
 import com.example.studentmangerment.service.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,8 @@ import java.util.Date;
  * tooltips and generated HTML indexes. Use {@code <p>} to start extra paragraphs.
  *
  * <p>Use {@link StudentService} for business logic; this class only maps HTTP to service calls.
+ *
+ * <p>Authorization: {@code USER} may read (GET) and export; {@code ADMIN} may create, update, and delete.
  *
  * @see StudentService
  */
@@ -51,6 +54,7 @@ public class StudentController {
      * @return HTTP 200 with a {@link ApiResponse} whose data is a {@link PageResponse} of {@link StudentResponse}
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<ApiResponse<PageResponse<StudentResponse>>> getAllStudents(
             @RequestParam(required = false) String code,
             @RequestParam(required = false) String name,
@@ -80,6 +84,7 @@ public class StudentController {
      *         if no student exists for {@code id} (handled by {@code @ControllerAdvice}, typically as 404)
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<ApiResponse<StudentResponse>> getStudentById(@PathVariable int id) {
         StudentResponse student = studentService.getStudentById(id);
         return ResponseEntity.ok(ApiResponse.success("Student retrieved successfully", student));
@@ -87,6 +92,7 @@ public class StudentController {
 
     /** Loads a student by business {@code code} (path variable), not by numeric id. */
     @GetMapping("/code/{code}")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<ApiResponse<StudentResponse>> getStudentByCode(@PathVariable String code) {
         StudentResponse student = studentService.getStudentByCode(code);
         return ResponseEntity.ok(ApiResponse.success("Student retrieved successfully", student));
@@ -101,6 +107,7 @@ public class StudentController {
      *         if {@link StudentRequest#code} duplicates an existing student
      */
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<StudentResponse>> createStudent(@Valid @RequestBody StudentRequest request) {
         StudentResponse student = studentService.createStudent(request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -115,6 +122,7 @@ public class StudentController {
      * @return HTTP 200 with updated payload
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<StudentResponse>> updateStudent(
             @PathVariable int id,
             @Valid @RequestBody StudentRequest request) {
@@ -124,6 +132,7 @@ public class StudentController {
 
     /** Deletes a student by id; response body message only (no data). */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable int id) {
         studentService.deleteStudent(id);
         return ResponseEntity.ok(ApiResponse.success("Student deleted successfully", null));
@@ -135,6 +144,7 @@ public class StudentController {
      * @return {@link Resource} with {@code Content-Disposition: attachment} and {@code text/csv}
      */
     @GetMapping("/export")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Resource> exportStudents() {
         // Run the batch job to generate dynamic csv and get its filename
         String filename = studentService.exportStudents();

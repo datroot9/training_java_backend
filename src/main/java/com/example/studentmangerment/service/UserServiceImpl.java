@@ -9,8 +9,10 @@ import com.example.studentmangerment.exception.AlreadyExistsException;
 import com.example.studentmangerment.security.JwtUtils;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -39,12 +41,14 @@ public class UserServiceImpl implements UserService {
         User user = User.builder()
                 .username(request.getUsername())
                 .password(request.getPassword())
+                .role("USER")
                 .build();
         userDao.insert(user);
 
         // response for register request have no jwt
         return AuthResponse.builder()
                 .username(user.getUsername())
+                .role("USER")
                 .build();
     }
 
@@ -57,12 +61,14 @@ public class UserServiceImpl implements UserService {
                 .orElse(null);
         if (user != null && bCryptPasswordEncoder.matches(request.getPassword(), user.getPassword())) {
             String token = jwtUtils.generateToken(user.getUsername());
+            String role = user.getRole() == null || user.getRole().isBlank() ? "USER" : user.getRole();
             return AuthResponse.builder()
                     .id(user.getId())
                     .username(user.getUsername())
                     .token(token)
+                    .role(role)
                     .build();
         }
-        throw new RuntimeException("Invalid username or password");
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
     }
 }

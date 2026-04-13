@@ -1,15 +1,36 @@
-version: '3.8'
-
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: student_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: student_management
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"]
+      interval: 8s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
   spring-app:
     build: .
     container_name: student_backend
-    network_mode: "host"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
     env_file:
       - .env
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/student_management?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/student_management?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       DB_PASSWORD: ${DB_PASSWORD}
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
 
+volumes:
+  mysql_data:

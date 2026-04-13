@@ -21,8 +21,8 @@ class StudentQueryIntegrationTest extends BaseStudentIntegrationTest {
     @DisplayName("get all with paging")
     void getAllStudents_success() throws Exception {
         String authHeader = validAuthHeader();
-        createStudent("STU001", authHeader);
-        createStudent("STU002", authHeader);
+        createStudent("STU001");
+        createStudent("STU002");
 
         mockMvc.perform(get(STUDENTS_ENDPOINT)
                         .header("Authorization", authHeader)
@@ -41,8 +41,8 @@ class StudentQueryIntegrationTest extends BaseStudentIntegrationTest {
     @DisplayName("filter by code and name")
     void getAllStudents_filterByCodeAndName() throws Exception {
         String authHeader = validAuthHeader();
-        createStudent("STU001", authHeader);
-        createStudent("STU002", authHeader);
+        createStudent("STU001");
+        createStudent("STU002");
 
         mockMvc.perform(get(STUDENTS_ENDPOINT)
                         .header("Authorization", authHeader)
@@ -73,8 +73,8 @@ class StudentQueryIntegrationTest extends BaseStudentIntegrationTest {
     @DisplayName("invalid sortBy falls back to default sort")
     void getAllStudents_invalidSortBy_fallbackDefault() throws Exception {
         String authHeader = validAuthHeader();
-        createStudent("STU002", authHeader);
-        createStudent("STU001", authHeader);
+        createStudent("STU002");
+        createStudent("STU001");
 
         mockMvc.perform(get(STUDENTS_ENDPOINT)
                         .header("Authorization", authHeader)

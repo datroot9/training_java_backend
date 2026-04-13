@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -277,7 +278,7 @@ public class StudentControllerTest {
                                         .content(objectMapper.writeValueAsString(request)))
                                         .andExpect(status().isBadRequest())
                                         .andExpect(jsonPath("$.code").value(400))
-                                        .andExpect(jsonPath("$.message").value("Validation failed"))
+                                        .andExpect(jsonPath("$.message", containsString(expectedError)))
                                         .andExpect(jsonPath("$.data." + expectedField).value(expectedError));
 
                         verify(studentService, never()).createStudent(any(StudentRequest.class));
@@ -422,7 +423,7 @@ public class StudentControllerTest {
                                         .content(objectMapper.writeValueAsString(request)))
                                         .andExpect(status().isBadRequest())
                                         .andExpect(jsonPath("$.code").value(400))
-                                        .andExpect(jsonPath("$.message").value("Validation failed"))
+                                        .andExpect(jsonPath("$.message", containsString(expectedError)))
                                         .andExpect(jsonPath("$.data." + expectedField).value(expectedError));
 
                         verify(studentService, times(0)).updateStudent(anyInt(), any(StudentRequest.class));
