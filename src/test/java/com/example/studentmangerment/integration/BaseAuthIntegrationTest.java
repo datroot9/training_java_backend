@@ -2,13 +2,20 @@ package com.example.studentmangerment.integration;
 
 import com.example.studentmangerment.security.JwtUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("it-mysql")
+@Transactional
 abstract class BaseAuthIntegrationTest {
     protected static final String EXISTING_EMAIL = "user@test.com";
     protected static final String EXISTING_PASSWORD = "pass123";
@@ -39,11 +46,6 @@ abstract class BaseAuthIntegrationTest {
         jdbcTemplate.update(
                 "INSERT INTO user (user_name, password, role) VALUES (?, ?, ?)",
                 ADMIN_EMAIL, encoded, "ADMIN");
-    }
-
-    @AfterEach
-    void cleanUp() {
-        jdbcTemplate.update("DELETE FROM user");
     }
 
     protected record RegisterPayload(String username, String password, String confirmPassword) {

@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${IT_DB_URL:jdbc:mysql://localhost:3306/student_management_test?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true}
+    username: ${IT_DB_USERNAME:root}
+    password: ${IT_DB_PASSWORD:${DB_PASSWORD:strongpassword123!}}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/test-migration
+    table: flyway_schema_history_it
+  sql:
+    init:
+      mode: never
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
+doma:
+  dialect: mysql
+
+FRONTEND_URL: http://localhost
+jwtSecret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+jwtExpiration: 3600000

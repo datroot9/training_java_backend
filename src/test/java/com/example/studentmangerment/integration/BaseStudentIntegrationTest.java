@@ -2,7 +2,6 @@ package com.example.studentmangerment.integration;
 
 import java.util.Map;
 import java.util.Objects;
-import org.junit.jupiter.api.AfterEach;
 import org.springframework.test.web.servlet.ResultActions;
 
 abstract class BaseStudentIntegrationTest extends BaseAuthIntegrationTest {
@@ -16,12 +15,6 @@ abstract class BaseStudentIntegrationTest extends BaseAuthIntegrationTest {
     protected static final String VALID_BIRTHDAY = "2004/01/01";
 
     protected static final String DEFAULT_TOKEN_EMAIL = EXISTING_EMAIL;
-
-    @AfterEach
-    void cleanStudentData() {
-        jdbcTemplate.update("DELETE FROM student_info");
-        jdbcTemplate.update("DELETE FROM student");
-    }
 
     protected String validAuthHeader() {
         return "Bearer " + jwtUtils.generateToken(DEFAULT_TOKEN_EMAIL);

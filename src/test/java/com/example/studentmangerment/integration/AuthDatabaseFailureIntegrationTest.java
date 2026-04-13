@@ -4,18 +4,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
 @DisplayName("Auth DB failure integration tests")
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 class AuthDatabaseFailureIntegrationTest extends BaseAuthIntegrationTest {
+
+    @AfterEach
+    void cleanupWithoutTransaction() {
+        jdbcTemplate.execute("DELETE FROM user");
+    }
 
     @Test
     @DisplayName("register when DB table is dropped -> 500")
