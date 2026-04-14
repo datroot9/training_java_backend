@@ -13,20 +13,26 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+/**
+ * Paging {@link ItemStreamReader} that loads students in fixed-size chunks for CSV export.
+ */
 @Component
 @StepScope
 @RequiredArgsConstructor
 public class StudentBatchReader implements ItemStreamReader<StudentWithInfo> {
 
+    /** Execution context key for restartable offset. */
     private static final String OFFSET_KEY = "StudentBatchReader.currentOffset";
 
+    /** Loads pages of {@link StudentWithInfo} from the database. */
     private final StudentDao studentDao;
 
-    // How many records to pull from MySQL in a single database trip
+    /** Number of rows fetched per database round trip. */
     private final int PAGE_SIZE = 10;
+    /** Current SQL offset for the next page fetch. */
     private int currentOffset = 0;
 
-    // Temporary memory storage for the current page
+    /** Buffered rows for the current page not yet returned to the chunk processor. */
     private final Queue<StudentWithInfo> studentCache = new LinkedList<>();
 
     @Override

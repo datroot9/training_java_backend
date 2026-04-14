@@ -14,9 +14,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Writes a JSON {@link ApiResponse} with HTTP 401 when authentication fails at the filter chain entry.
+ */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+    /**
+     * Serializes an unauthorized error body for unauthenticated API calls.
+     */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) throws IOException, ServletException {

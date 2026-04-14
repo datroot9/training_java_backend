@@ -3,6 +3,9 @@ package com.example.studentmangerment.validation;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+/**
+ * Validator for {@link AsciiOnly}; null values are considered valid (use {@code @NotNull} separately).
+ */
 public class AsciiOnlyValidator implements ConstraintValidator<AsciiOnly, String> {
 
     @Override
@@ -10,6 +13,9 @@ public class AsciiOnlyValidator implements ConstraintValidator<AsciiOnly, String
         ConstraintValidator.super.initialize(constraintAnnotation);
     }
 
+    /**
+     * @return {@code true} if every character is ASCII; {@code true} for {@code null}
+     */
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         if (value == null) {

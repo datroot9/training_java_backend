@@ -11,13 +11,15 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 
-@Component
 /**
  * Utility component for JWT token creation and validation.
  */
+@Component
 public class JwtUtils {
+    /** HMAC secret used to sign and verify tokens. */
     @Value("${jwtSecret}")
     private String jwtSecret;
+    /** Token time-to-live in milliseconds. */
     @Value("${jwtExpiration}")
     private long jwtExpirationMs;
 

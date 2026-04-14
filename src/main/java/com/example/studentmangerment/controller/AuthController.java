@@ -13,16 +13,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for user registration and login.
+ *
+ * <p>Maps HTTP requests to {@link UserService} and wraps results in {@link ApiResponse}.
+ */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-/**
- * Authentication endpoints for user registration and login.
- *
- * <p>This controller only maps HTTP requests to {@link UserService} and wraps results
- * into the common {@link ApiResponse} envelope.
- */
 public class AuthController {
+    /** Application service for register and login flows. */
     private final UserService userService;
 
     /**

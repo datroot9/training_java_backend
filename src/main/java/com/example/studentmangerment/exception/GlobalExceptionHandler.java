@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
 /**
  * Centralized exception mapping for REST controllers.
  *
  * <p>Converts exceptions into consistent {@link ApiResponse} error payloads.
  */
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**

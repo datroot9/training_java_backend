@@ -14,14 +14,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-@Service
-@RequiredArgsConstructor
 /**
  * Default {@link UserService} implementation using DAO persistence and JWT generation.
  */
+@Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+    /** User persistence. */
     private final UserDao userDao;
+    /** Password hashing for register and login verification. */
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    /** JWT creation for authenticated sessions. */
     private final JwtUtils jwtUtils;
 
     /**

@@ -19,19 +19,22 @@ import com.example.studentmangerment.security.JwtAuthenticationFilter;
 
 import lombok.AllArgsConstructor;
 
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
-@AllArgsConstructor
 /**
  * Spring Security configuration for JWT-based stateless authentication.
  *
  * <p>Permits authentication and OpenAPI paths, protects all other endpoints,
  * and installs the JWT filter before the username/password filter.
  */
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+@AllArgsConstructor
 public class SecurityConfig {
+    /** Parses JWT and populates the security context. */
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    /** Returns JSON 401 when authentication is missing or invalid. */
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    /** CORS rules applied to all requests. */
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean

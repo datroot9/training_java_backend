@@ -36,6 +36,7 @@ import java.util.Date;
 @RequestMapping("/api/students")
 @RequiredArgsConstructor
 public class StudentController {
+    /** Application service for student CRUD, listing, and export. */
     private final StudentService studentService;
 
     /**

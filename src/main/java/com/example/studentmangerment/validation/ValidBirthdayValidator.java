@@ -6,8 +6,14 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * Validator for {@link ValidBirthday}; null is valid (use {@code @NotNull} separately).
+ */
 public class ValidBirthdayValidator implements ConstraintValidator<ValidBirthday, Date> {
 
+    /**
+     * @return {@code false} if the date is in the future or older than 100 years
+     */
     @Override
     public boolean isValid(Date value, ConstraintValidatorContext context) {
         if (value == null) {
@@ -36,6 +42,7 @@ public class ValidBirthdayValidator implements ConstraintValidator<ValidBirthday
         return true;
     }
 
+    /** Replaces the default message with a specific validation failure. */
     private void setMessage(ConstraintValidatorContext context, String message) {
         context.disableDefaultConstraintViolation();
         context.buildConstraintViolationWithTemplate(message).addConstraintViolation();

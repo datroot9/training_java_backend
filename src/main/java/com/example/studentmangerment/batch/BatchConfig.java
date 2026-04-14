@@ -18,8 +18,17 @@ import org.springframework.transaction.PlatformTransactionManager;
 import com.example.studentmangerment.dto.StudentCsvDto;
 import com.example.studentmangerment.entity.StudentWithInfo;
 
+/**
+ * Spring Batch job that exports all students to a semicolon-delimited CSV file.
+ */
 @Configuration
 public class BatchConfig {
+    /**
+     * Writes CSV rows to {@code student_{timestamp}.csv} using job parameter {@code timestamp}.
+     *
+     * @param timestamp job parameter for unique output filename
+     * @return configured flat file writer
+     */
     @Bean
     @StepScope
     public FlatFileItemWriter<StudentCsvDto> studentCsvWriter(
@@ -37,6 +46,13 @@ public class BatchConfig {
                 .build();
     }
 
+    /**
+     * Top-level export job with a single step.
+     *
+     * @param jobRepository batch job repository
+     * @param exportStudentsStep read-process-write step
+     * @return job definition
+     */
     @Bean
     public Job exportStudentsJob(JobRepository jobRepository, Step exportStudentsStep) {
         return new JobBuilder("exportStudentsJob", jobRepository)
@@ -44,6 +60,16 @@ public class BatchConfig {
                 .build();
     }
 
+    /**
+     * Chunk-oriented step: read {@link StudentWithInfo}, map to {@link StudentCsvDto}, write CSV.
+     *
+     * @param jobRepository batch job repository
+     * @param reader paging reader over students
+     * @param processor entity to CSV row mapper
+     * @param writer CSV file writer
+     * @param transactionManager transaction manager for chunk boundaries
+     * @return configured step
+     */
     @Bean
     public Step exportStudentsStep(JobRepository jobRepository, StudentBatchReader reader,
             StudentBatchProcessor processor,

@@ -18,12 +18,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 
+/**
+ * Servlet filter that validates {@code Authorization: Bearer} JWTs and sets Spring Security context.
+ */
 @Component
 @AllArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    /** Token validation and subject extraction. */
     private final JwtUtils jwtUtils;
+    /** Loads {@link UserDetails} for the JWT subject. */
     private final UserDetailsServiceImpl userDetailsService;
 
+    /**
+     * Parses JWT from the request, validates it, and installs an authenticated token when valid.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -46,6 +54,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     }
 
+    /**
+     * Extracts the raw JWT from the {@code Authorization} header.
+     *
+     * @param request current HTTP request
+     * @return token without the {@code Bearer } prefix, or {@code null}
+     */
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
         // Token thường có dạng: "Bearer <chuỗi_token>"

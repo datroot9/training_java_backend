@@ -8,13 +8,13 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
 /**
- * OpenAPI/Swagger metadata and global security scheme declaration.
+ * OpenAPI/Swagger metadata and global JWT security scheme.
  *
- * <p>Declares a JWT bearer scheme named {@code bearerAuth} and applies it as the
- * default requirement for all documented endpoints.
+ * <p>Declares a bearer scheme named {@code bearerAuth} as the default
+ * security requirement for documented endpoints.
  */
+@Configuration
 @OpenAPIDefinition(
         info = @Info(
                 title = "Student Management API",

@@ -8,14 +8,19 @@ import org.springframework.stereotype.Component;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Converts {@link StudentWithInfo} entities into {@link StudentCsvDto} rows for CSV writing.
+ */
 @Component
 public class StudentBatchProcessor implements ItemProcessor<StudentWithInfo, StudentCsvDto> {
-    
-    // We instantiate the formatter once to be reused across all read chunks
-    // DateTimeFormatter is immutable and thread-safe
+
+    /** Shared formatter for birthday strings; immutable and thread-safe. */
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd")
             .withZone(ZoneId.systemDefault());
 
+    /**
+     * Formats birthday and copies scalar fields into a CSV line DTO.
+     */
     @Override
     public StudentCsvDto process(StudentWithInfo studentWithInfo) {
         String formattedDate = "";

@@ -24,16 +24,21 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
-@RequiredArgsConstructor
 /**
  * Default {@link StudentService} implementation backed by Doma DAOs and Spring Batch.
  */
+@Service
+@RequiredArgsConstructor
 public class StudentServiceImpl implements StudentService {
+    /** Student and joined-query persistence. */
     private final StudentDao studentDao;
+    /** Student info row persistence. */
     private final StudentInfoDao studentInfoDao;
+    /** Launches batch jobs (CSV export). */
     private final JobLauncher jobLauncher;
+    /** Configured export job bean. */
     private final Job exportStudentsJob;
+    /** Maps entities to API responses. */
     private final StudentMapper studentMapper;
 
     /**

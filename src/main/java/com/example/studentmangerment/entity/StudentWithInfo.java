@@ -8,21 +8,29 @@ import org.seasar.doma.Entity;
 
 import java.util.Date;
 
+/**
+ * Denormalized read model joining {@code student} and {@code student_info} for queries and batch export.
+ */
 @Entity(immutable = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class StudentWithInfo {
-    // From students table
+    /** Student primary key from the {@code student} table. */
     private int id;
+    /** Student display name. */
     private String name;
+    /** Business student code. */
     private String code;
 
-    // From student_info table
+    /** Info row primary key from {@code student_info}, if present. */
     private Integer infoId;
+    /** Address from {@code student_info}. */
     private String address;
+    /** Average score from {@code student_info}. */
     private Double averageScore;
+    /** Date of birth from {@code student_info}. */
     private Date birthday;
 
 }

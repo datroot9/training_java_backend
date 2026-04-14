@@ -12,31 +12,39 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+/**
+ * Request body for creating or updating a student and associated student info.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class StudentRequest {
+    /** Student display name. */
     @NotBlank(message = "Name is required")
     @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
     @ByteSize(max = 20, message = "Name must not exceed 20 bytes")
     private String name;
 
+    /** Business student code ({@code STU} + three digits; see {@link com.example.studentmangerment.validation.StudentCode}). */
     @NotBlank(message = "Code is required")
     @StudentCode
     @ByteSize(max = 10, message = "Code must not exceed 10 bytes")
     private String code;
 
+    /** Postal or contact address. */
     @NotBlank(message = "Address is required")
     @Size(min = 5, max = 200, message = "Address must not exceed 255 bytes")
     @ByteSize(max = 255, message = "Address must not exceed 255 bytes")
     private String address;
 
+    /** Average score on the configured scale (typically 0–10). */
     @NotNull(message = "Average score is required")
     @DecimalMin(value = "0.0", message = "Average score must be at least 0.0")
     @DecimalMax(value = "10.0", message = "Average score must be at most 10.0")
     private Double averageScore;
 
+    /** Date of birth ({@code yyyy/MM/dd} in JSON). */
     @NotNull(message = "Birthday is required")
     @JsonFormat(pattern = "yyyy/MM/dd", timezone = "UTC")
     @ValidBirthday

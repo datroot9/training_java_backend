@@ -13,11 +13,22 @@ import com.example.studentmangerment.entity.User;
 
 import lombok.AllArgsConstructor;
 
+/**
+ * Spring Security {@link UserDetailsService} that loads users from the database for JWT authentication.
+ */
 @Service
 @AllArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
+    /** Loads {@link User} rows by username. */
     private final UserDao userDao;
 
+    /**
+     * Builds a {@link UserDetails} instance with password and {@code ROLE_*} authorities.
+     *
+     * @param username login name from the JWT subject
+     * @return authenticated user details
+     * @throws UsernameNotFoundException if no user exists for the username
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userDao.findByUsername(username)
